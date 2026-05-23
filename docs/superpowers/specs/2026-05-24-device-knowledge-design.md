@@ -136,6 +136,11 @@ type SerializedRegex = {
 Adapters and MCP query helpers may compile regex values at runtime after
 validation.
 
+Existing Robot Hub data stores regex values as strings and compiles them with
+the `i` flag. Migration helpers should preserve that behavior by converting a
+legacy string to `{ source: legacyPattern, flags: 'i' }`. New data should use
+`SerializedRegex` directly, so flags are explicit and round-trip safely.
+
 ## Conflict Rules
 
 - Lower `priority` wins when two modules provide the same official identifier.
@@ -266,6 +271,8 @@ Required migration verification once code moves:
 - comparison of `package.json` `exports`, `files`, and `types` against the
   current RDK Studio package
 - assertion that `hardware-knowledge.md` is included in package output
+- assertion that legacy Robot Hub string regex values convert to
+  `{ source, flags: 'i' }` without changing match behavior
 - RDK Studio integration smoke that registers `rdkKnowledgeModule`
 - RDK Studio packaging smoke that finds
   `node_modules/@rdstudio/rdk-knowledge/dist/rdk-knowledge-module.js`
