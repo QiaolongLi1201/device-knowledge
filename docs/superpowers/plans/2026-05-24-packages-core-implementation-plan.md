@@ -209,7 +209,8 @@ Run:
 npm run verify
 ```
 
-Expected: FAIL because `@device-knowledge/core` has no tests yet and `node --test test/*.spec.mjs` cannot find test files.
+Expected: PASS with docs lint and `@device-knowledge/core` build output. Node
+22 reports `tests 0` until test files are added in later tasks.
 
 - [ ] **Step 9: Commit the skeleton**
 

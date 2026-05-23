@@ -9,8 +9,9 @@
     "packages/*"
   ],
   "scripts": {
-    "verify": "npm run lint:docs",
-    "lint:docs": "node scripts/check-docs.mjs"
+    "verify": "npm run lint:docs && npm run test -w @device-knowledge/core",
+    "lint:docs": "node scripts/check-docs.mjs",
+    "test:core": "npm run test -w @device-knowledge/core"
   },
   "engines": {
     "node": ">=22.16.0"
