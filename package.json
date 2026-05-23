@@ -1,0 +1,18 @@
+{
+  "name": "device-knowledge-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Open device knowledge modules and MCP server for robotics agents.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "verify": "npm run lint:docs",
+    "lint:docs": "node scripts/check-docs.mjs"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  }
+}
