@@ -4,7 +4,14 @@ import { fileURLToPath } from 'node:url';
 
 import {
   DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+  type CommandPattern,
   type DeviceKnowledgeModuleData,
+  type DocIndexEntry,
+  type EndorsedSkillRef,
+  type FailureHint,
+  type KnowledgeCompatibilityScope,
+  type KnowledgeSourceType,
+  type PromptFragment,
   type SerializedRegex,
 } from '@device-knowledge/core';
 
@@ -47,6 +54,145 @@ export const RDK_ECOSYSTEM_TEXT = buildEcosystemText();
 
 export { getRdkResearchSeeds } from './rdk-device-profiles.js';
 
+const RDK_SCOPE: KnowledgeCompatibilityScope = {
+  platforms: ['rdk-x3', 'rdk-x5', 'rdk-ultra', 'rdk-s100'],
+  boards: ['x3', 'x5', 'ultra', 's100', 's100p'],
+  socs: ['bernoulli2', 'bayes', 'nash'],
+};
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/https?:\/\//g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function inferSourceType(sourceUrl: string): KnowledgeSourceType {
+  if (sourceUrl.includes('github.com/')) return 'github';
+  if (sourceUrl.includes('/forum')) return 'forum';
+  if (sourceUrl.includes('developer.d-robotics.cc/rdk_doc')) return 'official-doc';
+  return 'community';
+}
+
+function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndexEntry {
+  const sourceType = inferSourceType(entry.url);
+  const specificPlatforms = entry.tags
+    .filter((tag) => ['x3', 'x5', 'ultra', 's100', 's100p'].includes(tag))
+    .map((tag) => (tag === 's100p' ? 'rdk-s100' : `rdk-${tag}`));
+  return {
+    id: `rdk-doc-${entry.section}-${slugify(entry.title || entry.url) || index}`,
+    title: entry.title,
+    url: entry.url,
+    sourceUrl: entry.url,
+    sourceType,
+    section: entry.section,
+    tags: entry.tags,
+    language: entry.url.includes('/en/') ? 'en' : 'zh-CN',
+    status: 'active',
+    confidence: sourceType === 'official-doc' || sourceType === 'github' ? 'high' : 'medium',
+    priority: 80,
+    lastReviewedAt: '2026-05-25',
+    citationLabel: `${entry.title} (${entry.section})`,
+    source: {
+      type: sourceType,
+      url: entry.url,
+      retrievedAt: '2026-05-25',
+    },
+    scope: {
+      ...RDK_SCOPE,
+      platforms: specificPlatforms.length ? [...new Set(specificPlatforms)] : RDK_SCOPE.platforms,
+    },
+    chunkPolicy: {
+      strategy: entry.section === 'toolchain' || entry.section === 'system' ? 'heading' : 'paragraph',
+      maxTokens: 800,
+      overlapTokens: 120,
+    },
+    metadataForEmbedding: ['title', 'section', 'tags', 'platforms'],
+    metadataForPrompt: ['title', 'url', 'section', 'lastReviewedAt'],
+  };
+}
+
+function enrichPromptFragment(entry: typeof RDK_PROMPT_FRAGMENTS[number]): PromptFragment {
+  return {
+    ...entry,
+    source: {
+      type: 'generated',
+      repo: 'device-knowledge/packages/rdk-knowledge',
+      retrievedAt: '2026-05-25',
+    },
+    scope: RDK_SCOPE,
+    tags: ['prompt', entry.section, entry.tier, entry.mode],
+    language: 'zh-CN',
+    status: 'active',
+    confidence: 'high',
+    lastReviewedAt: '2026-05-25',
+    citationLabel: `RDK prompt fragment: ${entry.id}`,
+  };
+}
+
+function enrichCommandPattern(entry: typeof RDK_COMMAND_PATTERNS[number]): CommandPattern {
+  return {
+    ...entry,
+    id: `rdk-command-${entry.category}-${slugify(entry.description)}`,
+    pattern: serializeRegex(entry.pattern),
+    source: {
+      type: 'generated',
+      repo: 'device-knowledge/packages/rdk-knowledge',
+      retrievedAt: '2026-05-25',
+    },
+    scope: RDK_SCOPE,
+    tags: ['command', entry.category, entry.riskLevel],
+    language: 'en',
+    status: 'active',
+    confidence: 'high',
+    lastReviewedAt: '2026-05-25',
+    citationLabel: `RDK command pattern: ${entry.description}`,
+  };
+}
+
+function enrichFailureHint(entry: typeof RDK_FAILURE_HINTS[number], index: number): FailureHint {
+  return {
+    ...entry,
+    id: `rdk-failure-${index}-${slugify(entry.suggestion)}`,
+    errorPattern: serializeRegex(entry.errorPattern),
+    source: {
+      type: entry.docUrl ? inferSourceType(entry.docUrl) : 'generated',
+      ...(entry.docUrl ? { url: entry.docUrl } : { repo: 'device-knowledge/packages/rdk-knowledge' }),
+      retrievedAt: '2026-05-25',
+    },
+    scope: RDK_SCOPE,
+    tags: ['failure-hint'],
+    language: 'zh-CN',
+    status: 'active',
+    confidence: entry.docUrl ? 'high' : 'medium',
+    lastReviewedAt: '2026-05-25',
+    citationLabel: `RDK failure hint ${index + 1}`,
+  };
+}
+
+function enrichSkill(entry: typeof RDK_ENDORSED_SKILLS[number]): EndorsedSkillRef {
+  return {
+    ...entry,
+    platforms: entry.platforms ? [...entry.platforms] : undefined,
+    source: {
+      type: 'generated',
+      repo: 'device-knowledge/packages/rdk-knowledge',
+      retrievedAt: '2026-05-25',
+    },
+    scope: {
+      platforms: entry.platforms ? [...entry.platforms] : RDK_SCOPE.platforms,
+    },
+    tags: ['skill', entry.category ?? 'general'],
+    language: 'en',
+    status: 'active',
+    confidence: 'high',
+    lastReviewedAt: '2026-05-25',
+    citationLabel: `RDK endorsed skill: ${entry.id}`,
+  };
+}
+
 export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText: string } = {
   manifest: {
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
@@ -62,16 +208,10 @@ export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText
     },
   },
   profiles: getRdkDeviceProfiles(),
-  docs: RDK_DOC_INDEX,
-  promptFragments: RDK_PROMPT_FRAGMENTS,
-  commandPatterns: RDK_COMMAND_PATTERNS.map((entry) => ({
-    ...entry,
-    pattern: serializeRegex(entry.pattern),
-  })),
-  failureHints: RDK_FAILURE_HINTS.map((entry) => ({
-    ...entry,
-    errorPattern: serializeRegex(entry.errorPattern),
-  })),
-  skills: [...RDK_ENDORSED_SKILLS],
+  docs: RDK_DOC_INDEX.map(enrichDoc),
+  promptFragments: RDK_PROMPT_FRAGMENTS.map(enrichPromptFragment),
+  commandPatterns: RDK_COMMAND_PATTERNS.map(enrichCommandPattern),
+  failureHints: RDK_FAILURE_HINTS.map(enrichFailureHint),
+  skills: RDK_ENDORSED_SKILLS.map(enrichSkill),
   ecosystemText: RDK_ECOSYSTEM_TEXT,
 };

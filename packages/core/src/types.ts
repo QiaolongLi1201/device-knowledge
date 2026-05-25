@@ -21,14 +21,103 @@ export interface SerializedRegex {
   flags?: string;
 }
 
+export type KnowledgeSourceType = 'official-doc' | 'github' | 'forum' | 'community' | 'local' | 'generated';
+export type KnowledgeRecordStatus = 'active' | 'deprecated' | 'draft';
+export type KnowledgeConfidence = 'high' | 'medium' | 'low';
+export type CommandRiskLevel = 'safe' | 'moderate' | 'dangerous';
+
+export interface KnowledgeSourceRef {
+  type: KnowledgeSourceType;
+  url?: string;
+  repo?: string;
+  commit?: string;
+  documentVersion?: string;
+  retrievedAt?: string;
+}
+
+export interface KnowledgeCompatibilityScope {
+  platforms?: string[];
+  boards?: string[];
+  socs?: string[];
+  rdkVersions?: string[];
+  osVersions?: string[];
+  toolchains?: string[];
+}
+
+export interface KnowledgeChunkPolicy {
+  strategy: 'none' | 'heading' | 'paragraph' | 'qa' | 'command' | 'release-note';
+  maxTokens?: number;
+  overlapTokens?: number;
+}
+
+export interface KnowledgeRecordBase {
+  id: string;
+  source: KnowledgeSourceRef;
+  scope?: KnowledgeCompatibilityScope;
+  tags?: string[];
+  language?: string;
+  status?: KnowledgeRecordStatus;
+  confidence?: KnowledgeConfidence;
+  priority?: number;
+  lastReviewedAt?: string;
+  validFrom?: string;
+  validTo?: string;
+  supersedes?: string[];
+  citationLabel?: string;
+}
+
+export interface DocIndexEntry extends KnowledgeRecordBase {
+  title: string;
+  url: string;
+  sourceUrl?: string;
+  sourceType?: KnowledgeSourceType;
+  section: string;
+  sectionPath?: string[];
+  anchors?: string[];
+  pageHint?: string;
+  chunkPolicy?: KnowledgeChunkPolicy;
+  parentId?: string;
+  prevId?: string;
+  nextId?: string;
+  metadataForEmbedding?: string[];
+  metadataForPrompt?: string[];
+}
+
+export interface PromptFragment extends KnowledgeRecordBase {
+  section: string;
+  tier: string;
+  mode: string;
+  content: string;
+  priority: number;
+}
+
+export interface CommandPattern extends KnowledgeRecordBase {
+  pattern: SerializedRegex;
+  category: string;
+  description: string;
+  riskLevel: CommandRiskLevel;
+}
+
+export interface FailureHint extends KnowledgeRecordBase {
+  errorPattern: SerializedRegex;
+  suggestion: string;
+  docUrl?: string;
+}
+
+export interface EndorsedSkillRef extends KnowledgeRecordBase {
+  category?: string;
+  platforms?: string[];
+  priority?: number;
+}
+
 export interface DeviceKnowledgeModuleData {
   manifest: DeviceKnowledgeModuleManifest;
   profiles?: Record<string, unknown>;
-  docs?: unknown[];
-  promptFragments?: unknown[];
-  commandPatterns?: unknown[];
-  failureHints?: unknown[];
-  skills?: unknown[];
+  docs?: DocIndexEntry[];
+  promptFragments?: PromptFragment[];
+  commandPatterns?: CommandPattern[];
+  failureHints?: FailureHint[];
+  skills?: EndorsedSkillRef[];
   ecosystemText?: string;
 }
 
