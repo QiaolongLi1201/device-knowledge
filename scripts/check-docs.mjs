@@ -1,4 +1,8 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 
 const requiredFiles = [
   'README.md',
@@ -13,7 +17,7 @@ const requiredFiles = [
 ];
 
 for (const file of requiredFiles) {
-  const text = readFileSync(file, 'utf8');
+  const text = readFileSync(path.join(repoRoot, file), 'utf8');
   if (!text.trim()) {
     throw new Error(`${file} is empty`);
   }

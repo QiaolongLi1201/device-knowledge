@@ -114,6 +114,16 @@ const jetsonProfiles = {
     cpu: 'Quad-core ARM Cortex-A57',
     ramGb: 4,
     detectionPatterns: ['tegra', 'jetson', 'jetson nano'],
+    runtimeBasePath: '/usr/lib/aarch64-linux-gnu',
+    inferLibPackage: 'jetson-inference',
+    diagnosticCommand: 'tegrastats --interval 1 | head -n 5',
+    systemPython: '/usr/bin/python3',
+    capabilityNotes: [
+      ...(orinNanoProfile.capabilityNotes?.filter(
+        (note: string) => !note.includes('TensorRT') || note.includes('compatible'),
+      ) ?? []),
+      'Legacy Nano: JetPack 4.x, limited TensorRT operator support',
+    ],
   },
 };
 

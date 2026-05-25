@@ -61,6 +61,19 @@ const RDK_SCOPE: KnowledgeCompatibilityScope = {
   socs: ['bernoulli2', 'bayes', 'nash'],
 };
 
+const PLATFORM_BOARD_MAP: Record<string, string[]> = {
+  'rdk-x3': ['x3'],
+  'rdk-x5': ['x5'],
+  'rdk-ultra': ['ultra'],
+  'rdk-s100': ['s100', 's100p'],
+};
+const PLATFORM_SOC_MAP: Record<string, string[]> = {
+  'rdk-x3': ['bernoulli2'],
+  'rdk-x5': ['bayes'],
+  'rdk-ultra': ['bayes'],
+  'rdk-s100': ['nash'],
+};
+
 function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -94,7 +107,7 @@ function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndex
     sourceType,
     section: entry.section,
     tags: entry.tags,
-    language: entry.url.includes('/en/') ? 'en' : 'zh-CN',
+    language: entry.url.includes('/en/') || entry.url.includes('github.com') ? 'en' : 'zh-CN',
     status: 'active',
     confidence: sourceType === 'official-doc' || sourceType === 'github' ? 'high' : 'medium',
     priority: 80,
@@ -105,10 +118,17 @@ function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndex
       url: entry.url,
       retrievedAt: '2026-05-25',
     },
-    scope: {
-      ...RDK_SCOPE,
-      platforms: specificPlatforms.length ? [...new Set(specificPlatforms)] : RDK_SCOPE.platforms,
-    },
+    scope: (() => {
+      const narrowedPlatforms = specificPlatforms.length ? [...new Set(specificPlatforms)] : (RDK_SCOPE.platforms ?? []);
+      const narrowedBoards = [...new Set(narrowedPlatforms.flatMap(p => PLATFORM_BOARD_MAP[p] ?? []))];
+      const narrowedSocs = [...new Set(narrowedPlatforms.flatMap(p => PLATFORM_SOC_MAP[p] ?? []))];
+      return {
+        ...RDK_SCOPE,
+        platforms: narrowedPlatforms,
+        boards: narrowedBoards.length ? narrowedBoards : RDK_SCOPE.boards,
+        socs: narrowedSocs.length ? narrowedSocs : RDK_SCOPE.socs,
+      };
+    })(),
     chunkPolicy: {
       strategy: entry.section === 'toolchain' || entry.section === 'system' ? 'heading' : 'paragraph',
       maxTokens: 800,
