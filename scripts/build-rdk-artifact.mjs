@@ -29,6 +29,13 @@ const [
 ]);
 const sourceModules = [rdkKnowledgeModuleData, jetsonKnowledgeModuleData, rpiKnowledgeModuleData];
 const artifactVersion = version ?? rdkKnowledgeModuleData.manifest.version;
+const releaseModules = sourceModules.map((moduleData) => ({
+  ...moduleData,
+  manifest: {
+    ...moduleData.manifest,
+    version: artifactVersion,
+  },
+}));
 const artifactMinRdkStudio =
   minRdkStudio ??
   sourceModules
@@ -66,16 +73,16 @@ const artifactPayload = {
   version: artifactVersion,
   ...(artifactMinRdkStudio ? { minRdkStudio: artifactMinRdkStudio } : {}),
   createdAt: new Date().toISOString(),
-  modules: sourceModules,
+  modules: releaseModules,
 };
 
 const artifact = {
   ...artifactPayload,
   checksums: {
     artifactSha256: sha256Stable(artifactPayload),
-    modulesSha256: sha256Stable(sourceModules),
+    modulesSha256: sha256Stable(releaseModules),
     modules: Object.fromEntries(
-      sourceModules.map((moduleData) => [moduleData.manifest.id, sha256Stable(moduleData)]),
+      releaseModules.map((moduleData) => [moduleData.manifest.id, sha256Stable(moduleData)]),
     ),
   },
 };
