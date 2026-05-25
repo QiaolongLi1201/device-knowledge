@@ -59,7 +59,7 @@ function sortCandidates(candidates: ModuleConflictCandidate[]): ModuleConflictCa
     const specificityDiff = specificityWeight(a.specificity) - specificityWeight(b.specificity);
     if (specificityDiff !== 0) return specificityDiff;
 
-    if (a.override !== b.override) return a.override ? -1 : 1;
+    if (Boolean(a.override) !== Boolean(b.override)) return a.override ? -1 : 1;
     if (a.priority !== b.priority) return a.priority - b.priority;
     return 0;
   });

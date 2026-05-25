@@ -369,7 +369,9 @@ function validateDocEntry(issues: ValidationIssue[], entry: unknown, path: strin
     title,
     url,
     sourceUrl: typeof entry.sourceUrl === 'string' ? entry.sourceUrl : url,
-    sourceType: typeof entry.sourceType === 'string' ? (entry.sourceType as KnowledgeSourceType) : base.source.type,
+    sourceType: typeof entry.sourceType === 'string' && SOURCE_TYPES.has(entry.sourceType as KnowledgeSourceType)
+      ? (entry.sourceType as KnowledgeSourceType)
+      : base.source.type,
     section,
     ...(sectionPath ? { sectionPath } : {}),
     ...(anchors ? { anchors } : {}),
@@ -445,17 +447,17 @@ function validateRecordArray<T>(
   input: Record<string, unknown>,
   key: keyof DeviceKnowledgeModuleData,
   validator: (issues: ValidationIssue[], entry: unknown, path: string) => T | undefined,
-): T[] | undefined {
+): Array<{ record: T; originalIndex: number }> | undefined {
   const value = input[key];
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) {
     issues.push({ path: String(key), code: 'invalid-array', message: `${String(key)} must be an array when provided` });
     return undefined;
   }
-  const results: T[] = [];
+  const results: Array<{ record: T; originalIndex: number }> = [];
   value.forEach((entry, index) => {
     const result = validator(issues, entry, `${String(key)}.${index}`);
-    if (result) results.push(result);
+    if (result) results.push({ record: result, originalIndex: index });
   });
   return results;
 }
@@ -471,13 +473,13 @@ function withLegacySourceFallback<T>(
 
 function validateUniqueRecordIds(
   issues: ValidationIssue[],
-  groups: Array<{ key: string; records: Array<{ id: string }> | undefined }>,
+  groups: Array<{ key: string; records: Array<{ record: { id: string }; originalIndex: number }> | undefined }>,
 ): void {
   const seen = new Map<string, string>();
   for (const group of groups) {
-    group.records?.forEach((record, index) => {
+    group.records?.forEach(({ record, originalIndex }) => {
       const firstPath = seen.get(record.id);
-      const path = `${group.key}.${index}.id`;
+      const path = `${group.key}.${originalIndex}.id`;
       if (firstPath) {
         issues.push({
           path,
@@ -553,11 +555,11 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
   return validationOk({
     manifest: manifestResult.value,
     profiles: profiles as Record<string, unknown> | undefined,
-    docs,
-    promptFragments,
-    commandPatterns,
-    failureHints,
-    skills,
+    docs: docs?.map(({ record }) => record),
+    promptFragments: promptFragments?.map(({ record }) => record),
+    commandPatterns: commandPatterns?.map(({ record }) => record),
+    failureHints: failureHints?.map(({ record }) => record),
+    skills: skills?.map(({ record }) => record),
     ecosystemText: input.ecosystemText as string | undefined,
   });
 }
