@@ -87,7 +87,11 @@ export function normalizeCommandPatterns(raw: unknown[] | undefined): CommandPat
       typeof e.riskLevel === 'string' &&
       VALID_RISK_LEVELS.has(e.riskLevel)
     ) {
-      results.push(normalizeCommandPattern(entry as RawCommandPattern));
+      try {
+        results.push(normalizeCommandPattern(entry as RawCommandPattern));
+      } catch (err) {
+        console.warn(`[dmoss-adapter] skipping invalid command pattern: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   }
   return results;
@@ -103,7 +107,11 @@ export function normalizeFailureHints(raw: unknown[] | undefined): FailureHint[]
       'errorPattern' in entry &&
       typeof e.suggestion === 'string'
     ) {
-      results.push(normalizeFailureHint(entry as RawFailureHint));
+      try {
+        results.push(normalizeFailureHint(entry as RawFailureHint));
+      } catch (err) {
+        console.warn(`[dmoss-adapter] skipping invalid failure hint: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   }
   return results;
@@ -116,7 +124,8 @@ export function normalizePromptFragments(raw: unknown[] | undefined): PromptFrag
     const e = entry as Record<string, unknown>;
     if (
       typeof entry === 'object' && entry !== null &&
-      'id' in entry && 'section' in entry && 'content' in entry &&
+      'id' in entry && 'section' in entry &&
+      typeof e.content === 'string' && e.content.trim() &&
       typeof e.priority === 'number' && Number.isFinite(e.priority)
     ) {
       const metadata = metadataFrom(e);
@@ -125,7 +134,7 @@ export function normalizePromptFragments(raw: unknown[] | undefined): PromptFrag
         section: e.section as PromptFragment['section'],
         tier: (e.tier as PromptFragment['tier']) ?? 'all',
         mode: (e.mode as PromptFragment['mode']) ?? 'all',
-        content: String(e.content),
+        content: e.content as string,
         priority: e.priority,
         ...(metadata ? { metadata } : {}),
       });
@@ -159,7 +168,20 @@ export function normalizeDeviceProfiles(
   raw: Record<string, unknown> | undefined,
 ): Record<string, DeviceProfileBase> {
   if (!raw) return {};
-  return raw as Record<string, DeviceProfileBase>;
+  const result: Record<string, DeviceProfileBase> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value !== 'object' || value === null) {
+      console.warn(`[dmoss-adapter] profile "${key}" is not an object, skipping`);
+      continue;
+    }
+    const profile = value as Record<string, unknown>;
+    if (typeof profile.platform !== 'string' || !profile.platform.trim()) {
+      console.warn(`[dmoss-adapter] profile "${key}" missing platform, skipping`);
+      continue;
+    }
+    result[key] = value as DeviceProfileBase;
+  }
+  return result;
 }
 
 export function normalizeSkills(raw: unknown[] | undefined): EndorsedSkillRef[] {

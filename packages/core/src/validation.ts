@@ -385,9 +385,6 @@ function validatePromptFragment(issues: ValidationIssue[], entry: unknown, path:
   const tier = requireString(issues, entry, 'tier', `${path}.tier`);
   const mode = requireString(issues, entry, 'mode', `${path}.mode`);
   const content = requireString(issues, entry, 'content', `${path}.content`);
-  if (typeof entry.priority !== 'number' || !Number.isFinite(entry.priority)) {
-    issues.push({ path: `${path}.priority`, code: 'invalid-priority', message: `${path}.priority must be a finite number` });
-  }
   if (!base || !section || !tier || !mode || !content || typeof entry.priority !== 'number') return undefined;
   return { ...base, section, tier, mode, content, priority: entry.priority };
 }
