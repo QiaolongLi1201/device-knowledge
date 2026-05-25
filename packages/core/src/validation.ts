@@ -183,6 +183,13 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
   validateOptionalArray(issues, input, 'commandPatterns');
   validateOptionalArray(issues, input, 'failureHints');
   validateOptionalArray(issues, input, 'skills');
+  if (input.ecosystemText !== undefined && typeof input.ecosystemText !== 'string') {
+    issues.push({
+      path: 'ecosystemText',
+      code: 'invalid-string',
+      message: 'ecosystemText must be a string when provided',
+    });
+  }
 
   if (issues.length) return validationFailed(issues);
   if (!manifestResult.ok) return validationFailed(issues);
@@ -195,5 +202,6 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
     commandPatterns: input.commandPatterns as unknown[] | undefined,
     failureHints: input.failureHints as unknown[] | undefined,
     skills: input.skills as unknown[] | undefined,
+    ecosystemText: input.ecosystemText as string | undefined,
   });
 }

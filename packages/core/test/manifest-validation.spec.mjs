@@ -80,10 +80,32 @@ test('validateDeviceKnowledgeModule accepts serializable data arrays', () => {
     commandPatterns: [],
     failureHints: [],
     skills: [],
+    ecosystemText: 'offline ecosystem prompt',
   });
 
   assert.equal(result.ok, true);
   assert.deepEqual(result.value.docs, []);
+  assert.equal(result.value.ecosystemText, 'offline ecosystem prompt');
+});
+
+test('validateDeviceKnowledgeModule rejects non-string ecosystemText', () => {
+  const result = validateDeviceKnowledgeModule({
+    manifest: {
+      schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+      id: 'rdk',
+      name: 'RDK Development Kit',
+      version: '0.1.0',
+      origin: 'official',
+      priority: 0,
+      compatibility: {
+        dmossKnowledgeModule: '^0.3.1',
+      },
+    },
+    ecosystemText: 123,
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.path === 'ecosystemText'), true);
 });
 
 test('validateDeviceKnowledgeModule rejects missing manifest', () => {

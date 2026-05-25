@@ -29,6 +29,7 @@ export interface DeviceKnowledgeModuleData {
   commandPatterns?: unknown[];
   failureHints?: unknown[];
   skills?: unknown[];
+  ecosystemText?: string;
 }
 
 export interface ValidationIssue {

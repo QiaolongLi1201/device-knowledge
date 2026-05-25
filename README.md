@@ -2,6 +2,19 @@
 
 Open device knowledge modules and MCP access for robotics agents.
 
+## Build RDK Artifact
+
+RDK Studio consumes data-only artifacts from this repo. After editing
+`packages/rdk-knowledge/src/**`, build a versioned artifact:
+
+```bash
+npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
+```
+
+The output is `dist/artifacts/rdk-device-knowledge.artifact.json`. Publish that
+JSON for remote updates, or sync it into RDK Studio's bundled baseline before a
+desktop release.
+
 This repository is intended to host device-domain knowledge independently from
 RDK Studio. RDK Studio should consume the published packages without changing
 the user experience, while other agents can attach the same knowledge through
