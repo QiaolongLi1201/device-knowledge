@@ -6,3 +6,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!packages/jetson-knowledge/dist/
+!packages/jetson-knowledge/dist/**
+!packages/rpi-knowledge/dist/
+!packages/rpi-knowledge/dist/**

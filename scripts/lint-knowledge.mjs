@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { validateDeviceKnowledgeModule } from '@device-knowledge/core';
+import { jetsonKnowledgeModuleData } from '@device-knowledge/jetson-knowledge';
 import { rdkKnowledgeModuleData } from '@device-knowledge/rdk-knowledge';
+import { rpiKnowledgeModuleData } from '@device-knowledge/rpi-knowledge';
 
 const RECORD_GROUPS = ['docs', 'promptFragments', 'commandPatterns', 'failureHints', 'skills'];
 const DATE_FIELDS = ['lastReviewedAt', 'validFrom', 'validTo'];
@@ -35,12 +37,26 @@ function lintRecord(group, record, index) {
   }
 }
 
-const validation = validateDeviceKnowledgeModule(rdkKnowledgeModuleData);
-if (!validation.ok) {
-  for (const issue of validation.issues) add(issue.path, issue.message);
-} else {
-  for (const group of RECORD_GROUPS) {
-    validation.value[group]?.forEach((record, index) => lintRecord(group, record, index));
+const modules = [
+  ['rdk', rdkKnowledgeModuleData],
+  ['jetson', jetsonKnowledgeModuleData],
+  ['rpi', rpiKnowledgeModuleData],
+];
+const countsByModule = [];
+
+for (const [moduleName, moduleData] of modules) {
+  const validation = validateDeviceKnowledgeModule(moduleData);
+  if (!validation.ok) {
+    for (const issue of validation.issues) add(`${moduleName}.${issue.path}`, issue.message);
+  } else {
+    for (const group of RECORD_GROUPS) {
+      validation.value[group]?.forEach((record, index) => lintRecord(`${moduleName}.${group}`, record, index));
+    }
+    countsByModule.push(
+      `${moduleName}(${RECORD_GROUPS
+        .map((group) => `${group}=${validation.value[group]?.length ?? 0}`)
+        .join(' ')})`,
+    );
   }
 }
 
@@ -50,7 +66,4 @@ if (issues.length > 0) {
   process.exit(1);
 }
 
-const counts = RECORD_GROUPS
-  .map((group) => `${group}=${validation.value[group]?.length ?? 0}`)
-  .join(' ');
-console.log(`[lint:knowledge] ok ${counts}`);
+console.log(`[lint:knowledge] ok ${countsByModule.join(' ')}`);

@@ -18,13 +18,13 @@ trusted knowledge package
 ```
 
 The current implementation already provides the top-level module contract in
-`@device-knowledge/core`, the official RDK dataset in
-`@device-knowledge/rdk-knowledge`, and a D-Moss bridge in
+`@device-knowledge/core`, the official RDK dataset plus starter Jetson/Raspberry
+Pi datasets in `@device-knowledge/*-knowledge`, and a D-Moss bridge in
 `@device-knowledge/dmoss-adapter`. Typed record-level provenance, record id
-uniqueness validation, stable URL-hashed RDK doc ids, authoring lint, artifact
-checksum production, and host-side checksum validation are implemented. Remote
-hosting, release manifest discovery, and cryptographic signature verification
-are release/host roadmap items.
+uniqueness validation, stable URL-hashed RDK doc ids, authoring lint,
+multi-module artifact checksum production, and host-side checksum validation
+are implemented. Remote hosting, release manifest discovery, Rockchip/RK source
+data, and cryptographic signature verification are release/host roadmap items.
 
 ## Repository Layers
 
@@ -33,13 +33,17 @@ are release/host roadmap items.
 2. `@device-knowledge/rdk-knowledge` owns official RDK knowledge data and
    exports `rdkKnowledgeModuleData`, `RDK_ECOSYSTEM_TEXT`, and research seed
    helpers.
-3. `@device-knowledge/dmoss-adapter` maps validated module data into Moss
+3. `@device-knowledge/jetson-knowledge` and `@device-knowledge/rpi-knowledge`
+   own starter Jetson and Raspberry Pi knowledge data migrated out of RDK
+   Studio local source modules.
+4. `@device-knowledge/dmoss-adapter` maps validated module data into Moss
    `KnowledgeModule` objects for RDK Studio and Moss consumers.
-4. `packages/mcp-server` is reserved for read-only MCP access. Its server
+5. `packages/mcp-server` is reserved for read-only MCP access. Its server
    behavior is still roadmap.
-5. `scripts/build-rdk-artifact.mjs` packages the built RDK module into
-   `dist/artifacts/rdk-device-knowledge.artifact.json` for bundled or remote
-   delivery.
+6. `scripts/build-rdk-artifact.mjs` packages the built official device modules
+   into `dist/artifacts/rdk-device-knowledge.artifact.json` for bundled or
+   remote delivery. The script name remains RDK-compatible for existing Studio
+   release automation.
 
 ## Trusted Knowledge Package
 
@@ -55,7 +59,11 @@ Current artifact shape:
   "version": "2026.05.25.1",
   "minRdkStudio": "1.2.0",
   "createdAt": "2026-05-25T00:00:00.000Z",
-  "modules": []
+  "modules": [
+    { "manifest": { "id": "rdk" } },
+    { "manifest": { "id": "jetson-sbc" } },
+    { "manifest": { "id": "raspberry-pi-sbc" } }
+  ]
 }
 ```
 
@@ -172,6 +180,8 @@ must declare `override=true` before it can override official knowledge.
 ## Current Limits
 
 - `packages/mcp-server` is still a placeholder.
+- Rockchip/RK does not yet have a source package because RDK Studio did not
+  contain a dedicated local RK module to migrate.
 - Remote publishing is documented as an operating model, not an implemented
   upload command.
 - Artifact checksums are produced by this repository and validated by the RDK

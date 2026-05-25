@@ -7,19 +7,21 @@ remote publishing capabilities are marked as roadmap.
 
 ## Release Units
 
-- **Source package:** `@device-knowledge/rdk-knowledge` in
-  `packages/rdk-knowledge`.
+- **Source packages:** `@device-knowledge/rdk-knowledge`,
+  `@device-knowledge/jetson-knowledge`, and
+  `@device-knowledge/rpi-knowledge` in `packages/*-knowledge`.
 - **Validation package:** `@device-knowledge/core`.
 - **Moss adapter:** `@device-knowledge/dmoss-adapter`.
 - **Release artifact:** `dist/artifacts/rdk-device-knowledge.artifact.json`.
 
 The artifact schema is `rdk-device-knowledge.artifact.v1`. It contains a
 top-level artifact version, optional `minRdkStudio`, `createdAt`, and one or
-more validated modules. The current build script emits the official RDK module.
+more validated modules. The current build script emits official RDK, Jetson,
+and Raspberry Pi modules.
 
 ## Updating Knowledge For An RDK Studio Release
 
-1. Update knowledge data in `packages/rdk-knowledge/src/**`.
+1. Update knowledge data in `packages/*-knowledge/src/**`.
 2. Record source metadata in the data entry. The typed record shape supports:
    - `source.type`
    - `source.url` or `source.repo`
@@ -127,11 +129,15 @@ Repository acceptance:
 RDK Studio acceptance:
 
 - Studio can load the bundled artifact without network access.
-- Moss receives a valid `KnowledgeModule` converted by
+- Moss receives valid `KnowledgeModule` objects converted by
   `@device-knowledge/dmoss-adapter`.
 - Existing RDK knowledge workflows still work for device profiles,
   documentation index lookup, prompt fragments, command patterns, failure
   hints, endorsed skills, and ecosystem prompt text.
+- Jetson and Raspberry Pi starter modules load and provide scoped device
+  profiles, documentation index entries, prompt fragments, and ecosystem
+  prompt text. Command patterns, failure hints, and endorsed skills are added
+  only when those source records exist.
 - The release can fall back to the previous bundled artifact if validation or
   user-facing checks fail.
 
@@ -147,7 +153,7 @@ Remote acceptance:
 
 ## Release Checklist
 
-- [ ] Source records updated in `packages/rdk-knowledge/src/**`.
+- [ ] Source records updated in `packages/*-knowledge/src/**`.
 - [ ] Sources and compatibility scopes reviewed.
 - [ ] `npm run verify` passed.
 - [ ] Artifact built with the intended version and `--min-rdk-studio`.

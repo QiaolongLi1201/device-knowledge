@@ -2,20 +2,20 @@
 
 Open trusted device knowledge packages and MCP access for robotics agents.
 
-Device Knowledge is the source repository for data-only RDK knowledge that can
+Device Knowledge is the source repository for data-only device knowledge that can
 be bundled with RDK Studio, adapted into Moss, and later published as remote
 knowledge packages. The current implementation provides top-level module
-schema, validation, an RDK data package, a D-Moss adapter, an authoring lint,
-and an artifact builder. Record-level provenance is now part of the v2 core
-schema; v1 inputs are still accepted through a legacy migration path. Remote
-update hosting and cryptographic signature verification remain host/release
-responsibilities.
+schema, validation, official RDK data plus starter Jetson/Raspberry Pi
+packages, a D-Moss adapter, an authoring lint, and an artifact builder.
+Record-level provenance is now part of the v2 core schema; v1 inputs are still
+accepted through a legacy migration path. Remote update hosting and
+cryptographic signature verification remain host/release responsibilities.
 
 ## Build RDK Artifact
 
 RDK Studio consumes data-only artifacts from this repo. After editing knowledge
-data in `packages/rdk-knowledge/src/**`, verify the workspace and build a
-versioned artifact:
+data in `packages/*-knowledge/src/**`, verify the workspace and build a
+versioned multi-module artifact:
 
 ```bash
 npm run verify
@@ -25,9 +25,10 @@ npm run verify
 npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
 ```
 
-The output is `dist/artifacts/rdk-device-knowledge.artifact.json`. Publish that
-JSON for remote updates, or sync it into RDK Studio's bundled baseline before a
-desktop release.
+The output is `dist/artifacts/rdk-device-knowledge.artifact.json`. It contains
+the official RDK module plus starter Jetson and Raspberry Pi modules. Publish
+that JSON for remote updates, or sync it into RDK Studio's bundled baseline
+before a desktop release.
 
 The build script also accepts `--out <path>`. If `--version` is omitted, it uses
 `DEVICE_KNOWLEDGE_VERSION` or falls back to the RDK module manifest version. If
@@ -57,7 +58,9 @@ MCP.
 
 | Path | Purpose |
 | --- | --- |
-| `packages/rdk-knowledge` | Minimal RDK device knowledge module data and exports. |
+| `packages/rdk-knowledge` | Official RDK device knowledge module data and exports. |
+| `packages/jetson-knowledge` | Official Jetson starter knowledge module data and exports. |
+| `packages/rpi-knowledge` | Official Raspberry Pi starter knowledge module data and exports. |
 | `packages/mcp-server` | Standalone read-only MCP server for agent access. |
 | `packages/dmoss-adapter` | Adapter from device knowledge modules to D-Moss `KnowledgeModule`. |
 | `modules/` | Data-first device module bundles and examples. |
@@ -67,9 +70,9 @@ MCP.
 
 - A **Trusted Knowledge Package** is the release unit consumed by hosts. Today
   it is the `rdk-device-knowledge.artifact.v1` JSON artifact built from
-  `@device-knowledge/rdk-knowledge`. The artifact contains checksum metadata
-  for the artifact payload and each module; hosts must reject unsupported
-  signature fields until real public-key verification is configured.
+  `@device-knowledge/*-knowledge`. The artifact contains checksum metadata for
+  the artifact payload and each module; hosts must reject unsupported signature
+  fields until real public-key verification is configured.
 - A **KnowledgeRecord** is a source-backed fact or host-facing entry. Current
   module arrays include documentation index entries, prompt fragments, command
   patterns, failure hints, and endorsed skills, all with typed `id`, `source`,
@@ -88,8 +91,8 @@ MCP.
 
 The first useful version should be read-only:
 
-1. Grow the minimal `@device-knowledge/rdk-knowledge` data package toward the
-   current RDK Studio knowledge surface.
+1. Grow the official `@device-knowledge/*-knowledge` data packages toward the
+   current device knowledge surface.
 2. Move MCP-facing knowledge assembly out of RDK Studio internals.
 3. Publish an MCP server that exposes resources, tools, and prompts for device
    knowledge lookup.
