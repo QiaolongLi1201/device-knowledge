@@ -27,7 +27,7 @@ export const RDK_COMMAND_PATTERNS: CommandPattern[] = [
   { pattern: /df\s+-[hT]/i,                          category: 'diagnostics', description: 'Disk space usage',                          riskLevel: 'safe' },
   { pattern: /dmesg/i,                               category: 'diagnostics', description: 'Kernel ring buffer (hardware/driver logs)',  riskLevel: 'safe' },
   { pattern: /journalctl/i,                          category: 'diagnostics', description: 'Systemd journal logs',                      riskLevel: 'safe' },
-  { pattern: /top\s|htop/i,                          category: 'diagnostics', description: 'Process/CPU monitor',                       riskLevel: 'safe' },
+  { pattern: /\btop\s|htop/i,                          category: 'diagnostics', description: 'Process/CPU monitor',                       riskLevel: 'safe' },
 
   // ── ROS2 / TROS ─────────────────────────────────────────────────
   { pattern: /ros2\s+launch/i,    category: 'ros', description: 'ROS2 launch file execution',     riskLevel: 'moderate' },
@@ -57,7 +57,7 @@ export const RDK_COMMAND_PATTERNS: CommandPattern[] = [
   { pattern: /hrt_model_exec/i,   category: 'toolchain', description: 'Run inference on compiled model',             riskLevel: 'safe' },
 
   // ── package management ───────────────────────────────────────────
-  { pattern: /apt\s+(install|update|upgrade|remove|purge)/i, category: 'package', description: 'APT package management',  riskLevel: 'moderate' },
+  { pattern: /\bapt(?:-get)?\s+(install|update|upgrade|remove|purge)/i, category: 'package', description: 'APT package management',  riskLevel: 'moderate' },
   { pattern: /pip3?\s+install/i,   category: 'package', description: 'Python package install',       riskLevel: 'moderate' },
   { pattern: /npm\s+install/i,     category: 'package', description: 'Node.js package install',      riskLevel: 'moderate' },
 

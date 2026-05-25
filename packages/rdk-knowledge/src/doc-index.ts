@@ -26,7 +26,7 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
   { title: 'S100 快速上手',          url: `${DOC_S100}/Quick_start/hardware_introduction/rdk_s100`,     section: 'getting-started', tags: ['s100', 's100p', 'quick-start', 'setup'] },
   { title: 'X3 系统镜像烧录',        url: `${DOC_BASE}/Quick_start/install_os/rdk_x3`,                  section: 'getting-started', tags: ['image', 'flash', 'burn', 'sd-card', 'x3'] },
   { title: 'X5 系统镜像烧录',        url: `${DOC_BASE}/Quick_start/install_os/rdk_x5`,                  section: 'getting-started', tags: ['image', 'flash', 'burn', 'sd-card', 'x5'] },
-  { title: 'S100 系统镜像烧录',      url: `${DOC_S100}/Quick_start/install_os/rdk_s100/FAQ`,            section: 'getting-started', tags: ['image', 'flash', 'burn', 'emmc', 's100'] },
+  { title: 'S100 系统镜像烧录',      url: `${DOC_S100}/Quick_start/install_os/rdk_s100`,            section: 'getting-started', tags: ['image', 'flash', 'burn', 'emmc', 's100'] },
   { title: '网络配置（有线/WiFi/蓝牙）', url: `${DOC_BASE}/System_configuration/network_blueteeth`,      section: 'getting-started', tags: ['network', 'wifi', 'ethernet', 'bluetooth', 'ip', 'nmcli'] },
   { title: '远程登录（SSH/串口）',   url: `${DOC_BASE}/Quick_start/remote_login`,                       section: 'getting-started', tags: ['ssh', 'serial', 'putty', 'login'] },
   { title: 'RDK Studio 设备管理',    url: `${DOC_BASE}/Quick_start/RDK_Studio/Device_management/hardware_resource`, section: 'studio', tags: ['studio', 'device', 'connect', 'resource', 'management'] },

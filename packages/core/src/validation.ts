@@ -144,7 +144,15 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
       message: 'compatibility must be an object',
     });
   } else {
-    requireString(issues, input.compatibility, 'dmossKnowledgeModule', 'compatibility.dmossKnowledgeModule');
+    const compat = input.compatibility as Record<string, unknown>;
+    const dmossValue = requireString(issues, compat, 'dmossKnowledgeModule', 'compatibility.dmossKnowledgeModule');
+    if (typeof dmossValue === 'string' && !/^[\^~]?(\d+)\.(\d+)\.(\d+)/.test(dmossValue)) {
+      issues.push({
+        path: 'manifest.compatibility.dmossKnowledgeModule',
+        code: 'invalid-semver',
+        message: 'must be a semver range (e.g. "^0.3.1")',
+      });
+    }
     if (
       input.compatibility.minRdkStudio !== undefined &&
       (typeof input.compatibility.minRdkStudio !== 'string' || !input.compatibility.minRdkStudio.trim())
@@ -523,12 +531,20 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
     { key: 'failureHints', records: failureHints },
     { key: 'skills', records: skills },
   ]);
-  if (input.ecosystemText !== undefined && typeof input.ecosystemText !== 'string') {
-    issues.push({
-      path: 'ecosystemText',
-      code: 'invalid-string',
-      message: 'ecosystemText must be a string when provided',
-    });
+  if (input.ecosystemText !== undefined) {
+    if (typeof input.ecosystemText !== 'string') {
+      issues.push({
+        path: 'ecosystemText',
+        code: 'invalid-string',
+        message: 'ecosystemText must be a string when provided',
+      });
+    } else if (!input.ecosystemText.trim()) {
+      issues.push({
+        path: 'ecosystemText',
+        code: 'invalid-string',
+        message: 'must not be empty when provided',
+      });
+    }
   }
 
   if (issues.length) return validationFailed(issues);
