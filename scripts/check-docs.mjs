@@ -6,6 +6,7 @@ const requiredFiles = [
   'docs/architecture.md',
   'docs/superpowers/specs/2026-05-24-device-knowledge-design.md',
   'docs/superpowers/plans/2026-05-24-packages-core-implementation-plan.md',
+  'packages/core/README.md',
   'packages/rdk-knowledge/README.md',
   'packages/mcp-server/README.md',
   'packages/dmoss-adapter/README.md',

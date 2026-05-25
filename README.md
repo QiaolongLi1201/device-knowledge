@@ -23,7 +23,7 @@ MCP.
 
 | Path | Purpose |
 | --- | --- |
-| `packages/rdk-knowledge` | RDK device knowledge module data and exports. |
+| `packages/rdk-knowledge` | Minimal RDK device knowledge module data and exports. |
 | `packages/mcp-server` | Standalone read-only MCP server for agent access. |
 | `packages/dmoss-adapter` | Adapter from device knowledge modules to D-Moss `KnowledgeModule`. |
 | `modules/` | Data-first device module bundles and examples. |
@@ -33,7 +33,8 @@ MCP.
 
 The first useful version should be read-only:
 
-1. Extract the existing RDK knowledge package from RDK Studio.
+1. Grow the minimal `@device-knowledge/rdk-knowledge` data package toward the
+   current RDK Studio knowledge surface.
 2. Move MCP-facing knowledge assembly out of RDK Studio internals.
 3. Publish an MCP server that exposes resources, tools, and prompts for device
    knowledge lookup.

@@ -1,0 +1,25 @@
+{
+  "name": "@device-knowledge/core",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Core data schemas and validation helpers for device knowledge modules.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run build && node --test test/*.spec.mjs",
+    "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "devDependencies": { "typescript": "^5.7.3" },
+  "engines": { "node": ">=22.16.0" },
+  "keywords": ["device-knowledge", "schema", "robotics", "mcp", "dmoss"]
+}
