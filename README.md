@@ -5,9 +5,10 @@ Open trusted device knowledge packages and MCP access for robotics agents.
 Device Knowledge is the source repository for data-only RDK knowledge that can
 be bundled with RDK Studio, adapted into Moss, and later published as remote
 knowledge packages. The current implementation provides top-level module
-schema, validation, an RDK data package, a D-Moss adapter, and an artifact
-builder. Record-level provenance is now part of the core schema; remote update
-hosting and cryptographic signature verification remain host/release
+schema, validation, an RDK data package, a D-Moss adapter, an authoring lint,
+and an artifact builder. Record-level provenance is now part of the v2 core
+schema; v1 inputs are still accepted through a legacy migration path. Remote
+update hosting and cryptographic signature verification remain host/release
 responsibilities.
 
 ## Build RDK Artifact
@@ -66,7 +67,9 @@ MCP.
 
 - A **Trusted Knowledge Package** is the release unit consumed by hosts. Today
   it is the `rdk-device-knowledge.artifact.v1` JSON artifact built from
-  `@device-knowledge/rdk-knowledge`.
+  `@device-knowledge/rdk-knowledge`. The artifact contains checksum metadata
+  for the artifact payload and each module; hosts must reject unsupported
+  signature fields until real public-key verification is configured.
 - A **KnowledgeRecord** is a source-backed fact or host-facing entry. Current
   module arrays include documentation index entries, prompt fragments, command
   patterns, failure hints, and endorsed skills, all with typed `id`, `source`,

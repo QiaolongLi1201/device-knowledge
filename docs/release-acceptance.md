@@ -27,7 +27,9 @@ more validated modules. The current build script emits the official RDK module.
      available
    - compatibility `scope` when the fact applies only to specific boards,
      SoCs, RDK versions, OS versions, or toolchains
-3. Run repository verification:
+3. Run repository verification. This includes docs lint, package tests, and
+   `lint:knowledge` checks for duplicate ids, provenance, citations, dates,
+   document URLs, and chunk policies:
 
    ```bash
    npm run verify
@@ -89,8 +91,9 @@ Remote update behavior:
 
 - If remote fetch fails, Studio should keep using the bundled baseline or last
   valid cached artifact.
-- If checksum metadata, signature metadata, schema, or module validation fails,
-  Studio rejects the remote artifact and keeps the previous accepted artifact.
+- If checksum metadata, unsupported signature metadata, schema, compatibility,
+  response size, or module validation fails, Studio rejects the remote artifact
+  and keeps the previous accepted artifact.
 - If post-load validation or Moss registration fails, Studio should disable the
   candidate artifact, report the reason, and fall back without changing user
   workflows.
@@ -110,9 +113,14 @@ Repository acceptance:
   writes `dist/artifacts/rdk-device-knowledge.artifact.json`.
 - The artifact has schema `rdk-device-knowledge.artifact.v1`.
 - The artifact version matches the requested release version.
-- Every module manifest uses schema `device-knowledge.module.v1`.
+- Every newly produced module manifest uses schema `device-knowledge.module.v2`.
+- Legacy `device-knowledge.module.v1` inputs are accepted only through the
+  migration path and should not be emitted by new releases.
 - Official module priorities stay in the `0` to `99` range.
+- Record ids are unique across docs, prompt fragments, command patterns,
+  failure hints, and endorsed skills.
 - Changed knowledge records have source/provenance recorded in typed fields.
+- The artifact contains checksum metadata for the payload and module content.
 - New roadmap text is clearly marked as roadmap and does not imply existing
   upload commands or hosting behavior.
 
@@ -130,7 +138,8 @@ RDK Studio acceptance:
 Remote acceptance:
 
 - Studio rejects artifacts with incompatible schema, invalid checksum metadata,
-  invalid signature metadata, or failed module validation.
+  unsupported signature metadata, incompatible `minRdkStudio`, unsafe module
+  ids, oversized responses, or failed module validation.
 - Studio can continue from bundled or cached knowledge when remote update is
   unavailable.
 - Remote release notes identify changed source domains, affected boards, and
@@ -154,7 +163,7 @@ Remote acceptance:
 - The remote publisher, manifest format, signing method, and rollout policy are
   not implemented in this repository yet.
 - Cryptographic signature verification is not implemented yet; current Studio
-  validation checks signature metadata shape and verifiable checksums.
+  validation rejects signature fields and verifies checksums.
 - Artifact versioning should be aligned with Studio release management, but this
   repository only requires a non-empty `--version` value or falls back to the
   module manifest version.

@@ -1,9 +1,13 @@
-export const DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION = 'device-knowledge.module.v1';
+export const DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1 = 'device-knowledge.module.v1';
+export const DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION = 'device-knowledge.module.v2';
+export type DeviceKnowledgeModuleSchemaVersion =
+  | typeof DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1
+  | typeof DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION;
 
 export type DeviceKnowledgeModuleOrigin = 'official' | 'community' | 'user';
 
 export interface DeviceKnowledgeModuleManifest {
-  schemaVersion: typeof DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION;
+  schemaVersion: DeviceKnowledgeModuleSchemaVersion;
   id: string;
   name: string;
   version: string;

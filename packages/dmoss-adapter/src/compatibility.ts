@@ -6,13 +6,32 @@ import type {
   DocIndexEntry,
   EndorsedSkillRef,
   FailureHint,
+  KnowledgeRecordMetadata,
   PromptFragment,
 } from '@dmoss/core/contracts/knowledge-module';
 
 export type {
   CommandPattern, DeviceProfileBase, DocIndexEntry, EndorsedSkillRef,
-  FailureHint, KnowledgeModule, PromptFragment,
+  FailureHint, KnowledgeModule, KnowledgeRecordMetadata, PromptFragment,
 } from '@dmoss/core/contracts/knowledge-module';
+
+function metadataFrom(raw: Record<string, unknown>, extra: Partial<KnowledgeRecordMetadata> = {}): KnowledgeRecordMetadata | undefined {
+  if (typeof raw.id !== 'string') return undefined;
+  return {
+    id: raw.id,
+    ...(raw.source && typeof raw.source === 'object' ? { source: raw.source as KnowledgeRecordMetadata['source'] } : {}),
+    ...(raw.scope && typeof raw.scope === 'object' ? { scope: raw.scope as KnowledgeRecordMetadata['scope'] } : {}),
+    ...(typeof raw.status === 'string' ? { status: raw.status } : {}),
+    ...(typeof raw.confidence === 'string' ? { confidence: raw.confidence } : {}),
+    ...(typeof raw.priority === 'number' ? { priority: raw.priority } : {}),
+    ...(typeof raw.lastReviewedAt === 'string' ? { lastReviewedAt: raw.lastReviewedAt } : {}),
+    ...(typeof raw.validFrom === 'string' ? { validFrom: raw.validFrom } : {}),
+    ...(typeof raw.validTo === 'string' ? { validTo: raw.validTo } : {}),
+    ...(Array.isArray(raw.supersedes) ? { supersedes: raw.supersedes.map(String) } : {}),
+    ...(typeof raw.citationLabel === 'string' ? { citationLabel: raw.citationLabel } : {}),
+    ...extra,
+  };
+}
 
 export function normalizeRegex(input: string | SerializedRegex): RegExp {
   if (typeof input === 'string') return new RegExp(input, 'i');
@@ -27,11 +46,13 @@ interface RawCommandPattern {
 }
 
 export function normalizeCommandPattern(raw: RawCommandPattern): CommandPattern {
+  const metadata = metadataFrom(raw as unknown as Record<string, unknown>);
   return {
     pattern: normalizeRegex(raw.pattern),
     category: raw.category,
     description: raw.description,
     riskLevel: raw.riskLevel,
+    ...(metadata ? { metadata } : {}),
   };
 }
 
@@ -42,10 +63,12 @@ interface RawFailureHint {
 }
 
 export function normalizeFailureHint(raw: RawFailureHint): FailureHint {
+  const metadata = metadataFrom(raw as unknown as Record<string, unknown>);
   return {
     errorPattern: normalizeRegex(raw.errorPattern),
     suggestion: raw.suggestion,
     ...(raw.docUrl !== undefined ? { docUrl: raw.docUrl } : {}),
+    ...(metadata ? { metadata } : {}),
   };
 }
 
@@ -96,6 +119,7 @@ export function normalizePromptFragments(raw: unknown[] | undefined): PromptFrag
       'id' in entry && 'section' in entry && 'content' in entry &&
       typeof e.priority === 'number' && Number.isFinite(e.priority)
     ) {
+      const metadata = metadataFrom(e);
       results.push({
         id: String(e.id),
         section: e.section as PromptFragment['section'],
@@ -103,6 +127,7 @@ export function normalizePromptFragments(raw: unknown[] | undefined): PromptFrag
         mode: (e.mode as PromptFragment['mode']) ?? 'all',
         content: String(e.content),
         priority: e.priority,
+        ...(metadata ? { metadata } : {}),
       });
     }
   }
@@ -115,11 +140,15 @@ export function normalizeDocIndex(raw: unknown[] | undefined): DocIndexEntry[] {
   for (const entry of raw) {
     const e = entry as Record<string, unknown>;
     if (typeof entry === 'object' && entry !== null && 'title' in entry && 'url' in entry) {
+      const metadata = metadataFrom(e, e.chunkPolicy && typeof e.chunkPolicy === 'object'
+        ? { chunkPolicy: e.chunkPolicy as KnowledgeRecordMetadata['chunkPolicy'] }
+        : {});
       results.push({
         title: String(e.title),
         url: String(e.url),
         section: typeof e.section === 'string' ? e.section : '',
         tags: Array.isArray(e.tags) ? e.tags.map(String) : [],
+        ...(metadata ? { metadata } : {}),
       });
     }
   }
@@ -139,11 +168,13 @@ export function normalizeSkills(raw: unknown[] | undefined): EndorsedSkillRef[] 
   for (const entry of raw) {
     const e = entry as Record<string, unknown>;
     if (typeof entry === 'object' && entry !== null && 'id' in entry) {
+      const metadata = metadataFrom(e);
       results.push({
         id: String(e.id),
         ...(typeof e.category === 'string' ? { category: e.category } : {}),
         ...(Array.isArray(e.platforms) ? { platforms: e.platforms.map(String) } : {}),
         ...(typeof e.priority === 'number' ? { priority: e.priority } : {}),
+        ...(metadata ? { metadata } : {}),
       });
     }
   }

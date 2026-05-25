@@ -85,12 +85,29 @@ test('frag: filters NaN priority', () => {
 
 // ── Doc index + skills ──
 test('doc: pass-through', () => {
-  const r = normalizeDocIndex([{ title: 'T', url: 'https://x', section: 'S', tags: ['a'] }]);
+  const r = normalizeDocIndex([{
+    id: 'doc-1',
+    title: 'T',
+    url: 'https://x',
+    section: 'S',
+    tags: ['a'],
+    source: { type: 'official-doc', url: 'https://x' },
+    scope: { platforms: ['rdk-x5'] },
+    confidence: 'high',
+    citationLabel: 'Doc 1',
+    chunkPolicy: { strategy: 'heading', maxTokens: 800 },
+  }]);
   assert.equal(r.length, 1); assert.equal(r[0].title, 'T');
+  assert.equal(r[0].metadata.id, 'doc-1');
+  assert.equal(r[0].metadata.source.type, 'official-doc');
+  assert.deepEqual(r[0].metadata.scope.platforms, ['rdk-x5']);
+  assert.equal(r[0].metadata.citationLabel, 'Doc 1');
+  assert.equal(r[0].metadata.chunkPolicy.strategy, 'heading');
 });
 test('skills: pass-through', () => {
-  const r = normalizeSkills([{ id: 's1', category: 'tool', platforms: ['rdk-x5'] }]);
+  const r = normalizeSkills([{ id: 's1', category: 'tool', platforms: ['rdk-x5'], source: { type: 'generated', repo: 'device-knowledge' } }]);
   assert.equal(r.length, 1); assert.equal(r[0].id, 's1');
+  assert.equal(r[0].metadata.source.repo, 'device-knowledge');
 });
 
 // ── Full adapter ──

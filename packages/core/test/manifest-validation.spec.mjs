@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+  DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1,
   validateDeviceKnowledgeModule,
   validateManifest,
 } from '../dist/index.js';
@@ -42,6 +43,40 @@ test('validateManifest rejects unknown schema versions', () => {
 
   assert.equal(result.ok, false);
   assert.equal(result.issues[0].code, 'invalid-schema-version');
+});
+
+test('validateManifest accepts v1 manifests for legacy migration', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1,
+    id: 'legacy-rdk',
+    name: 'Legacy RDK',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '^0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.value.schemaVersion, DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1);
+});
+
+test('validateManifest rejects unsafe ids', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: '../escape',
+    name: 'Unsafe RDK',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '^0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.code === 'invalid-id'), true);
 });
 
 test('validateManifest rejects priority outside origin range', () => {
@@ -177,6 +212,71 @@ test('validateDeviceKnowledgeModule rejects records without provenance', () => {
 
   assert.equal(result.ok, false);
   assert.equal(result.issues.some((issue) => issue.path === 'docs.0.source'), true);
+});
+
+test('validateDeviceKnowledgeModule migrates v1 records without provenance', () => {
+  const result = validateDeviceKnowledgeModule({
+    manifest: {
+      schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1,
+      id: 'legacy-rdk',
+      name: 'Legacy RDK',
+      version: '0.1.0',
+      origin: 'official',
+      priority: 0,
+      compatibility: {
+        dmossKnowledgeModule: '^0.3.1',
+      },
+    },
+    docs: [
+      {
+        id: 'legacy-doc',
+        title: 'Legacy Doc',
+        url: 'https://example.com/legacy',
+        section: 'getting-started',
+        tags: [],
+      },
+    ],
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.value.docs[0].source.url, 'https://example.com/legacy');
+});
+
+test('validateDeviceKnowledgeModule rejects duplicate record ids across groups', () => {
+  const result = validateDeviceKnowledgeModule({
+    manifest: {
+      schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+      id: 'rdk',
+      name: 'RDK Development Kit',
+      version: '0.1.0',
+      origin: 'official',
+      priority: 0,
+      compatibility: {
+        dmossKnowledgeModule: '^0.3.1',
+      },
+    },
+    docs: [
+      {
+        id: 'duplicate-record',
+        title: 'Doc',
+        url: 'https://developer.d-robotics.cc/rdk_doc',
+        section: 'getting-started',
+        tags: [],
+        source: { type: 'official-doc', url: 'https://developer.d-robotics.cc/rdk_doc' },
+      },
+    ],
+    failureHints: [
+      {
+        id: 'duplicate-record',
+        errorPattern: { source: 'error', flags: 'i' },
+        suggestion: 'Read the doc.',
+        source: { type: 'generated', repo: 'device-knowledge' },
+      },
+    ],
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.code === 'duplicate-record-id'), true);
 });
 
 test('validateDeviceKnowledgeModule rejects invalid command regex', () => {

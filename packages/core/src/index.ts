@@ -1,5 +1,6 @@
 export {
   DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+  DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1,
   type CommandPattern,
   type CommandRiskLevel,
   type DeviceKnowledgeModuleData,

@@ -1,5 +1,6 @@
 import {
   DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+  DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1,
   type CommandPattern,
   type CommandRiskLevel,
   type DeviceKnowledgeModuleData,
@@ -28,6 +29,8 @@ const STATUSES = new Set<KnowledgeRecordStatus>(['active', 'deprecated', 'draft'
 const CONFIDENCES = new Set<KnowledgeConfidence>(['high', 'medium', 'low']);
 const RISK_LEVELS = new Set<CommandRiskLevel>(['safe', 'moderate', 'dangerous']);
 const CHUNK_STRATEGIES = new Set(['none', 'heading', 'paragraph', 'qa', 'command', 'release-note']);
+const SAFE_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,127}$/i;
+const SCHEMA_VERSIONS = new Set([DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1, DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION]);
 
 const PRIORITY_RANGES: Record<DeviceKnowledgeModuleOrigin, { min: number; max: number }> = {
   official: { min: 0, max: 99 },
@@ -55,6 +58,25 @@ function requireString(
   return undefined;
 }
 
+function requireSafeId(
+  issues: ValidationIssue[],
+  input: Record<string, unknown>,
+  key: string,
+  path = key,
+): string | undefined {
+  const value = requireString(issues, input, key, path);
+  if (!value) return undefined;
+  if (!SAFE_ID_PATTERN.test(value)) {
+    issues.push({
+      path,
+      code: 'invalid-id',
+      message: `${path} must match ${SAFE_ID_PATTERN.source}`,
+    });
+    return undefined;
+  }
+  return value;
+}
+
 export function validateManifest(input: unknown): ValidationResult<DeviceKnowledgeModuleManifest> {
   const issues: ValidationIssue[] = [];
   if (!isRecord(input)) {
@@ -64,15 +86,15 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
   }
 
   const schemaVersion = input.schemaVersion;
-  if (schemaVersion !== DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION) {
+  if (typeof schemaVersion !== 'string' || !SCHEMA_VERSIONS.has(schemaVersion)) {
     issues.push({
       path: 'schemaVersion',
       code: 'invalid-schema-version',
-      message: `schemaVersion must be ${DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION}`,
+      message: `schemaVersion must be ${DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION} or ${DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1}`,
     });
   }
 
-  const id = requireString(issues, input, 'id');
+  const id = requireSafeId(issues, input, 'id');
   const name = requireString(issues, input, 'name');
   const version = requireString(issues, input, 'version');
   const originValue = input.origin;
@@ -143,7 +165,7 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
   };
 
   return validationOk({
-    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    schemaVersion: schemaVersion as DeviceKnowledgeModuleManifest['schemaVersion'],
     id: id!,
     name: name!,
     version: version!,
@@ -190,7 +212,31 @@ function optionalString(issues: ValidationIssue[], input: Record<string, unknown
   return undefined;
 }
 
-function validateSource(issues: ValidationIssue[], input: unknown, path: string): KnowledgeSourceRef | undefined {
+function inferLegacySource(input: Record<string, unknown>): KnowledgeSourceRef {
+  const url =
+    typeof input.sourceUrl === 'string' && input.sourceUrl.trim()
+      ? input.sourceUrl
+      : typeof input.url === 'string' && input.url.trim()
+        ? input.url
+        : typeof input.docUrl === 'string' && input.docUrl.trim()
+          ? input.docUrl
+          : undefined;
+  if (url) {
+    return {
+      type: url.includes('github.com/') ? 'github' : 'community',
+      url,
+    };
+  }
+  return { type: 'generated', repo: 'legacy-device-knowledge-v1' };
+}
+
+function validateSource(
+  issues: ValidationIssue[],
+  input: unknown,
+  path: string,
+  fallback?: KnowledgeSourceRef,
+): KnowledgeSourceRef | undefined {
+  if (input === undefined && fallback) return fallback;
   if (!isRecord(input)) {
     issues.push({ path, code: 'invalid-source', message: `${path} must be an object` });
     return undefined;
@@ -231,9 +277,14 @@ function validateScope(issues: ValidationIssue[], input: unknown, path: string):
   return Object.fromEntries(Object.entries(scope).filter(([, value]) => value !== undefined));
 }
 
-function validateRecordBase(issues: ValidationIssue[], input: Record<string, unknown>, path: string): KnowledgeRecordBase | undefined {
-  const id = requireString(issues, input, 'id', `${path}.id`);
-  const source = validateSource(issues, input.source, `${path}.source`);
+function validateRecordBase(
+  issues: ValidationIssue[],
+  input: Record<string, unknown>,
+  path: string,
+  fallbackSource?: KnowledgeSourceRef,
+): KnowledgeRecordBase | undefined {
+  const id = requireSafeId(issues, input, 'id', `${path}.id`);
+  const source = validateSource(issues, input.source, `${path}.source`, fallbackSource);
   const scope = validateScope(issues, input.scope, `${path}.scope`);
   const tags = optionalStringArray(issues, input, 'tags', `${path}.tags`);
   const language = optionalString(issues, input, 'language', `${path}.language`);
@@ -404,6 +455,37 @@ function validateRecordArray<T>(
   return results;
 }
 
+function withLegacySourceFallback<T>(
+  validator: (issues: ValidationIssue[], entry: unknown, path: string) => T | undefined,
+): (issues: ValidationIssue[], entry: unknown, path: string) => T | undefined {
+  return (issues, entry, path) => {
+    if (!isRecord(entry) || entry.source !== undefined) return validator(issues, entry, path);
+    return validator(issues, { ...entry, source: inferLegacySource(entry) }, path);
+  };
+}
+
+function validateUniqueRecordIds(
+  issues: ValidationIssue[],
+  groups: Array<{ key: string; records: Array<{ id: string }> | undefined }>,
+): void {
+  const seen = new Map<string, string>();
+  for (const group of groups) {
+    group.records?.forEach((record, index) => {
+      const firstPath = seen.get(record.id);
+      const path = `${group.key}.${index}.id`;
+      if (firstPath) {
+        issues.push({
+          path,
+          code: 'duplicate-record-id',
+          message: `${path} duplicates ${firstPath} (${record.id})`,
+        });
+        return;
+      }
+      seen.set(record.id, path);
+    });
+  }
+}
+
 export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<DeviceKnowledgeModuleData> {
   if (!isRecord(input)) {
     return validationFailed([
@@ -428,11 +510,22 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
     });
   }
 
-  const docs = validateRecordArray(issues, input, 'docs', validateDocEntry);
-  const promptFragments = validateRecordArray(issues, input, 'promptFragments', validatePromptFragment);
-  const commandPatterns = validateRecordArray(issues, input, 'commandPatterns', validateCommandPattern);
-  const failureHints = validateRecordArray(issues, input, 'failureHints', validateFailureHint);
-  const skills = validateRecordArray(issues, input, 'skills', validateSkillRef);
+  const useLegacySourceFallback =
+    manifestResult.ok && manifestResult.value.schemaVersion === DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION_V1;
+  const legacy = <T>(validator: (issues: ValidationIssue[], entry: unknown, path: string) => T | undefined) =>
+    useLegacySourceFallback ? withLegacySourceFallback(validator) : validator;
+  const docs = validateRecordArray(issues, input, 'docs', legacy(validateDocEntry));
+  const promptFragments = validateRecordArray(issues, input, 'promptFragments', legacy(validatePromptFragment));
+  const commandPatterns = validateRecordArray(issues, input, 'commandPatterns', legacy(validateCommandPattern));
+  const failureHints = validateRecordArray(issues, input, 'failureHints', legacy(validateFailureHint));
+  const skills = validateRecordArray(issues, input, 'skills', legacy(validateSkillRef));
+  validateUniqueRecordIds(issues, [
+    { key: 'docs', records: docs },
+    { key: 'promptFragments', records: promptFragments },
+    { key: 'commandPatterns', records: commandPatterns },
+    { key: 'failureHints', records: failureHints },
+    { key: 'skills', records: skills },
+  ]);
   if (input.ecosystemText !== undefined && typeof input.ecosystemText !== 'string') {
     issues.push({
       path: 'ecosystemText',

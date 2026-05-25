@@ -20,10 +20,11 @@ trusted knowledge package
 The current implementation already provides the top-level module contract in
 `@device-knowledge/core`, the official RDK dataset in
 `@device-knowledge/rdk-knowledge`, and a D-Moss bridge in
-`@device-knowledge/dmoss-adapter`. Typed record-level provenance and host-side
-artifact checksum validation are implemented. Remote hosting, release manifest
-discovery, and cryptographic signature verification are release/host roadmap
-items.
+`@device-knowledge/dmoss-adapter`. Typed record-level provenance, record id
+uniqueness validation, stable URL-hashed RDK doc ids, authoring lint, artifact
+checksum production, and host-side checksum validation are implemented. Remote
+hosting, release manifest discovery, and cryptographic signature verification
+are release/host roadmap items.
 
 ## Repository Layers
 
@@ -65,10 +66,12 @@ npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
 ```
 
 Current trust checks include TypeScript compilation, package tests,
-`validateDeviceKnowledgeModule`, typed record provenance validation, priority
-rules, docs lint, and RDK Studio checksum-aware remote artifact smoke tests.
-Roadmap trust checks include cryptographic signature verification, remote
-release manifests, staged rollout metadata, and richer provenance reports.
+`validateDeviceKnowledgeModule`, typed record provenance validation, record id
+uniqueness, safe manifest/record ids, priority rules, docs lint, authoring
+knowledge lint, artifact checksum generation, and RDK Studio checksum-aware
+remote artifact smoke tests. Roadmap trust checks include cryptographic
+signature verification, remote release manifests, staged rollout metadata, and
+richer provenance reports.
 
 ## KnowledgeRecord And Chunk Model
 
@@ -147,10 +150,12 @@ helpers.
 
 ## Compatibility And Conflict Rules
 
-The active module schema is `device-knowledge.module.v1`. A manifest contains
+The active module schema is `device-knowledge.module.v2`. A manifest contains
 `id`, `name`, `version`, `origin`, optional `family`, `priority`, and
 compatibility metadata including `dmossKnowledgeModule` and optional
-`minRdkStudio`.
+`minRdkStudio`. Hosts may still accept `device-knowledge.module.v1` packages
+through a legacy migration path, but v2 is the producer format for new
+artifacts.
 
 Priority ranges are enforced by origin:
 
@@ -169,8 +174,10 @@ must declare `override=true` before it can override official knowledge.
 - `packages/mcp-server` is still a placeholder.
 - Remote publishing is documented as an operating model, not an implemented
   upload command.
-- Artifact checksums are validated by the RDK Studio update path; cryptographic
-  signature verification and staged rollout are roadmap.
+- Artifact checksums are produced by this repository and validated by the RDK
+  Studio update path; cryptographic signature verification and staged rollout
+  are roadmap. Hosts should reject signature fields until verification keys and
+  payload rules are configured.
 - The current validation checks top-level module shape, manifest compatibility,
   typed record shape, source/provenance presence, serialized regex fields, and
   document chunk policy hints.

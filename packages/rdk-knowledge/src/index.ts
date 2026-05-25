@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -69,6 +70,10 @@ function slugify(input: string): string {
     .slice(0, 80);
 }
 
+function shortHash(input: string): string {
+  return createHash('sha256').update(input).digest('hex').slice(0, 10);
+}
+
 function inferSourceType(sourceUrl: string): KnowledgeSourceType {
   if (sourceUrl.includes('github.com/')) return 'github';
   if (sourceUrl.includes('/forum')) return 'forum';
@@ -82,7 +87,7 @@ function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndex
     .filter((tag) => ['x3', 'x5', 'ultra', 's100', 's100p'].includes(tag))
     .map((tag) => (tag === 's100p' ? 'rdk-s100' : `rdk-${tag}`));
   return {
-    id: `rdk-doc-${entry.section}-${slugify(entry.title || entry.url) || index}`,
+    id: `rdk-doc-${entry.section}-${(slugify(entry.title || entry.url) || `entry-${index}`).slice(0, 56)}-${shortHash(entry.url)}`,
     title: entry.title,
     url: entry.url,
     sourceUrl: entry.url,
