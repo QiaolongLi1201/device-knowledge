@@ -12,6 +12,7 @@ test('validateManifest accepts a minimal official module manifest', () => {
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: 'rdk',
     name: 'RDK Development Kit',
+    version: '0.1.0',
     origin: 'official',
     priority: 0,
     compatibility: {
@@ -22,6 +23,7 @@ test('validateManifest accepts a minimal official module manifest', () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.value.id, 'rdk');
+  assert.equal(result.value.version, '0.1.0');
   assert.equal(result.value.origin, 'official');
 });
 
@@ -30,6 +32,7 @@ test('validateManifest rejects unknown schema versions', () => {
     schemaVersion: 'device-knowledge.module.v0',
     id: 'rdk',
     name: 'RDK Development Kit',
+    version: '0.1.0',
     origin: 'official',
     priority: 0,
     compatibility: {
@@ -46,6 +49,7 @@ test('validateManifest rejects priority outside origin range', () => {
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: 'community-rdk',
     name: 'Community RDK',
+    version: '0.1.0',
     origin: 'community',
     priority: 50,
     compatibility: {
@@ -63,6 +67,7 @@ test('validateDeviceKnowledgeModule accepts serializable data arrays', () => {
       schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
       id: 'rdk',
       name: 'RDK Development Kit',
+      version: '0.1.0',
       origin: 'official',
       priority: 0,
       compatibility: {
@@ -88,4 +93,20 @@ test('validateDeviceKnowledgeModule rejects missing manifest', () => {
 
   assert.equal(result.ok, false);
   assert.equal(result.issues.some((issue) => issue.path === 'manifest'), true);
+});
+
+test('validateManifest rejects missing version', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '^0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.path === 'version'), true);
 });

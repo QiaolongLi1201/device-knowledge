@@ -56,6 +56,7 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
 
   const id = requireString(issues, input, 'id');
   const name = requireString(issues, input, 'name');
+  const version = requireString(issues, input, 'version');
   const originValue = input.origin;
   const origin =
     typeof originValue === 'string' && ORIGINS.has(originValue as DeviceKnowledgeModuleOrigin)
@@ -127,6 +128,7 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: id!,
     name: name!,
+    version: version!,
     origin: origin!,
     family: typeof input.family === 'string' ? input.family : undefined,
     priority: priorityNumber!,

@@ -6,6 +6,7 @@ export interface DeviceKnowledgeModuleManifest {
   schemaVersion: typeof DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION;
   id: string;
   name: string;
+  version: string;
   origin: DeviceKnowledgeModuleOrigin;
   family?: string;
   priority: number;

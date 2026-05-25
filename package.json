@@ -9,11 +9,16 @@
     "packages/*"
   ],
   "scripts": {
-    "verify": "npm run lint:docs && npm run test -w @device-knowledge/core",
+    "verify": "npm run lint:docs && npm run test -w @device-knowledge/core && npm run test -w @device-knowledge/dmoss-adapter && npm run test -w @device-knowledge/rdk-knowledge",
     "lint:docs": "node scripts/check-docs.mjs",
-    "test:core": "npm run test -w @device-knowledge/core"
+    "test:core": "npm run test -w @device-knowledge/core",
+    "test:adapter": "npm run test -w @device-knowledge/dmoss-adapter",
+    "test:rdk": "npm run test -w @device-knowledge/rdk-knowledge"
   },
   "engines": {
     "node": ">=22.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
   }
 }
