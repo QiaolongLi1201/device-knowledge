@@ -39,13 +39,71 @@ try {
 
   const artifact = JSON.parse(fs.readFileSync(outFile, 'utf8'));
   assert.equal(artifact.version, releaseVersion);
+
+  // Validate artifact schema identifier.
+  assert.equal(
+    artifact.schema,
+    'rdk-device-knowledge.artifact.v1',
+    'artifact.schema should be the expected schema identifier',
+  );
+
+  // Validate top-level checksums exist and are 64-char hex.
+  const HEX64 = /^[0-9a-f]{64}$/;
+  assert.ok(artifact.checksums, 'artifact.checksums must be present');
+  assert.match(
+    artifact.checksums.artifactSha256,
+    HEX64,
+    'checksums.artifactSha256 must be a 64-char lowercase hex sha256',
+  );
+  assert.match(
+    artifact.checksums.modulesSha256,
+    HEX64,
+    'checksums.modulesSha256 must be a 64-char lowercase hex sha256',
+  );
+  assert.ok(
+    artifact.checksums.modules && typeof artifact.checksums.modules === 'object',
+    'checksums.modules must be an object',
+  );
+
+  // Validate per-module checksums exist for every module id.
   for (const moduleData of artifact.modules ?? []) {
+    const moduleId = moduleData.manifest?.id ?? 'unknown module';
+    const moduleChecksum = artifact.checksums.modules[moduleId];
+    assert.match(
+      moduleChecksum,
+      HEX64,
+      `${moduleId} checksum must be a 64-char lowercase hex sha256`,
+    );
     assert.equal(
       moduleData.manifest?.version,
       releaseVersion,
-      `${moduleData.manifest?.id ?? 'unknown module'} manifest.version should match artifact release version`,
+      `${moduleId} manifest.version should match artifact release version`,
     );
   }
+
+  // modulesSha256 should reflect module content, not just be a static value.
+  // Mutate a module field and verify the checksum would change.
+  const crypto = await import('node:crypto');
+  function stableStringify(value) {
+    if (value === undefined) return undefined;
+    if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value).sort().filter((k) => value[k] !== undefined);
+      return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+    }
+    return JSON.stringify(value);
+  }
+  function sha256Stable(value) {
+    return crypto.createHash('sha256').update(stableStringify(value)).digest('hex');
+  }
+  const mutatedModules = JSON.parse(JSON.stringify(artifact.modules));
+  mutatedModules[0].manifest.version = '0.0.0-tampered';
+  const mutatedModulesSha = sha256Stable(mutatedModules);
+  assert.notEqual(
+    mutatedModulesSha,
+    artifact.checksums.modulesSha256,
+    'modulesSha256 must change when module content changes',
+  );
 } finally {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }

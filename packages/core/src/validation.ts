@@ -146,11 +146,11 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
   } else {
     const compat = input.compatibility as Record<string, unknown>;
     const dmossValue = requireString(issues, compat, 'dmossKnowledgeModule', 'compatibility.dmossKnowledgeModule');
-    if (typeof dmossValue === 'string' && !/^[\^~]?(\d+)\.(\d+)\.(\d+)/.test(dmossValue)) {
+    if (typeof dmossValue === 'string' && !/^[\^~]?\d+\.\d+\.\d+$/.test(dmossValue)) {
       issues.push({
-        path: 'manifest.compatibility.dmossKnowledgeModule',
+        path: 'compatibility.dmossKnowledgeModule',
         code: 'invalid-semver',
-        message: 'must be a semver range (e.g. "^0.3.1")',
+        message: 'must be a semver or range (e.g. "0.3.1", "^0.3.1", "~0.3.1")',
       });
     }
     if (

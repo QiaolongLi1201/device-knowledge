@@ -352,3 +352,109 @@ test('validateManifest rejects missing version', () => {
   assert.equal(result.ok, false);
   assert.equal(result.issues.some((issue) => issue.path === 'version'), true);
 });
+
+test('validateManifest rejects semver with trailing garbage', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '^0.3.1 garbage',
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.code === 'invalid-semver'), true);
+});
+
+test('validateManifest rejects semver with leading garbage', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: 'v0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.code === 'invalid-semver'), true);
+});
+
+test('validateManifest accepts bare semver without prefix', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateManifest accepts tilde semver range', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: '~0.3.1',
+    },
+  });
+
+  assert.equal(result.ok, true);
+});
+
+test('validateManifest semver error path is relative to manifest', () => {
+  const result = validateManifest({
+    schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+    id: 'rdk',
+    name: 'RDK Development Kit',
+    version: '0.1.0',
+    origin: 'official',
+    priority: 0,
+    compatibility: {
+      dmossKnowledgeModule: 'not-a-semver',
+    },
+  });
+
+  assert.equal(result.ok, false);
+  const semverIssue = result.issues.find((issue) => issue.code === 'invalid-semver');
+  assert.ok(semverIssue, 'should have an invalid-semver issue');
+  assert.equal(semverIssue.path, 'compatibility.dmossKnowledgeModule');
+});
+
+test('validateDeviceKnowledgeModule does not double-prefix manifest in semver error path', () => {
+  const result = validateDeviceKnowledgeModule({
+    manifest: {
+      schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+      id: 'rdk',
+      name: 'RDK Development Kit',
+      version: '0.1.0',
+      origin: 'official',
+      priority: 0,
+      compatibility: {
+        dmossKnowledgeModule: 'not-a-semver',
+      },
+    },
+  });
+
+  assert.equal(result.ok, false);
+  const semverIssue = result.issues.find((issue) => issue.code === 'invalid-semver');
+  assert.ok(semverIssue, 'should have an invalid-semver issue');
+  assert.equal(semverIssue.path, 'manifest.compatibility.dmossKnowledgeModule');
+});

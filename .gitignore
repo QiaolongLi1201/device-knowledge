@@ -1,6 +1,8 @@
 node_modules/
 dist/
 coverage/
+.codegraph/
+.codex-claude-code/
 .DS_Store
 *.log
 .env
