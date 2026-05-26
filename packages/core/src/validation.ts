@@ -150,7 +150,7 @@ export function validateManifest(input: unknown): ValidationResult<DeviceKnowled
       issues.push({
         path: 'compatibility.dmossKnowledgeModule',
         code: 'invalid-semver',
-        message: 'must be a semver or range (e.g. "0.3.1", "^0.3.1", "~0.3.1")',
+        message: 'must be X.Y.Z, ^X.Y.Z, or ~X.Y.Z (e.g. "0.3.1", "^0.3.1", "~0.3.1")',
       });
     }
     if (

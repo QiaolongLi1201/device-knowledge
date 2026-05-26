@@ -40,6 +40,20 @@ try {
   const artifact = JSON.parse(fs.readFileSync(outFile, 'utf8'));
   assert.equal(artifact.version, releaseVersion);
 
+  const crypto = await import('node:crypto');
+  function stableStringify(value) {
+    if (value === undefined) return undefined;
+    if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value).sort().filter((k) => value[k] !== undefined);
+      return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+    }
+    return JSON.stringify(value);
+  }
+  function sha256Stable(value) {
+    return crypto.createHash('sha256').update(stableStringify(value)).digest('hex');
+  }
+
   // Validate artifact schema identifier.
   assert.equal(
     artifact.schema,
@@ -65,6 +79,18 @@ try {
     'checksums.modules must be an object',
   );
 
+  const { checksums: _checksums, signature: _signature, ...artifactPayload } = artifact;
+  assert.equal(
+    artifact.checksums.artifactSha256,
+    sha256Stable(artifactPayload),
+    'checksums.artifactSha256 must match the artifact payload hash',
+  );
+  assert.equal(
+    artifact.checksums.modulesSha256,
+    sha256Stable(artifact.modules),
+    'checksums.modulesSha256 must match the modules payload hash',
+  );
+
   // Validate per-module checksums exist for every module id.
   for (const moduleData of artifact.modules ?? []) {
     const moduleId = moduleData.manifest?.id ?? 'unknown module';
@@ -75,6 +101,11 @@ try {
       `${moduleId} checksum must be a 64-char lowercase hex sha256`,
     );
     assert.equal(
+      moduleChecksum,
+      sha256Stable(moduleData),
+      `${moduleId} checksum must match the module content hash`,
+    );
+    assert.equal(
       moduleData.manifest?.version,
       releaseVersion,
       `${moduleId} manifest.version should match artifact release version`,
@@ -83,19 +114,6 @@ try {
 
   // modulesSha256 should reflect module content, not just be a static value.
   // Mutate a module field and verify the checksum would change.
-  const crypto = await import('node:crypto');
-  function stableStringify(value) {
-    if (value === undefined) return undefined;
-    if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-    if (value && typeof value === 'object') {
-      const keys = Object.keys(value).sort().filter((k) => value[k] !== undefined);
-      return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
-    }
-    return JSON.stringify(value);
-  }
-  function sha256Stable(value) {
-    return crypto.createHash('sha256').update(stableStringify(value)).digest('hex');
-  }
   const mutatedModules = JSON.parse(JSON.stringify(artifact.modules));
   mutatedModules[0].manifest.version = '0.0.0-tampered';
   const mutatedModulesSha = sha256Stable(mutatedModules);
