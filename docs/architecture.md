@@ -33,7 +33,8 @@ data, and cryptographic signature verification are release/host roadmap items.
 2. `@device-knowledge/rdk-knowledge` owns official RDK knowledge data and
    exports `rdkKnowledgeModuleData`, `RDK_ECOSYSTEM_TEXT`, and research seed
    helpers.
-3. `@device-knowledge/jetson-knowledge` and `@device-knowledge/rpi-knowledge`
+3. `@device-knowledge/jetson-knowledge`, `@device-knowledge/rpi-knowledge`,
+   and `@device-knowledge/rk-knowledge`
    own starter Jetson and Raspberry Pi knowledge data migrated out of RDK
    Studio local source modules.
 4. `@device-knowledge/dmoss-adapter` maps validated module data into Moss
@@ -62,7 +63,8 @@ Current artifact shape:
   "modules": [
     { "manifest": { "id": "rdk" } },
     { "manifest": { "id": "jetson-sbc" } },
-    { "manifest": { "id": "raspberry-pi-sbc" } }
+    { "manifest": { "id": "raspberry-pi-sbc" } },
+    { "manifest": { "id": "rockchip-sbc" } }
   ]
 }
 ```

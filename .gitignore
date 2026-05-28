@@ -12,3 +12,5 @@ coverage/
 !packages/jetson-knowledge/dist/**
 !packages/rpi-knowledge/dist/
 !packages/rpi-knowledge/dist/**
+!packages/rk-knowledge/dist/
+!packages/rk-knowledge/dist/**

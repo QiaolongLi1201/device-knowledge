@@ -2,6 +2,7 @@
 import { validateDeviceKnowledgeModule } from '@device-knowledge/core';
 import { jetsonKnowledgeModuleData } from '@device-knowledge/jetson-knowledge';
 import { rdkKnowledgeModuleData } from '@device-knowledge/rdk-knowledge';
+import { rkKnowledgeModuleData } from '@device-knowledge/rk-knowledge';
 import { rpiKnowledgeModuleData } from '@device-knowledge/rpi-knowledge';
 
 const RECORD_GROUPS = ['docs', 'promptFragments', 'commandPatterns', 'failureHints', 'skills'];
@@ -41,6 +42,7 @@ const modules = [
   ['rdk', rdkKnowledgeModuleData],
   ['jetson', jetsonKnowledgeModuleData],
   ['rpi', rpiKnowledgeModuleData],
+  ['rk', rkKnowledgeModuleData],
 ];
 const countsByModule = [];
 

@@ -21,7 +21,7 @@ interface EndorsedSkillRef {
   priority?: number;
 }
 
-const RDK_PLATFORMS = ['rdk-x3', 'rdk-x5', 'rdk-ultra', 'rdk-s100'];
+const RDK_PLATFORMS = ['rdk-x3', 'rdk-x5', 'rdk-ultra', 'rdk-s100', 'rdk-s100p'];
 
 export const RDK_ENDORSED_SKILLS: ReadonlyArray<EndorsedSkillRef> = [
   {

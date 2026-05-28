@@ -21,13 +21,15 @@ const minRdkStudio = readArg('--min-rdk-studio') ?? process.env.MIN_RDK_STUDIO_V
 const [
   { jetsonKnowledgeModuleData },
   { rdkKnowledgeModuleData },
+  { rkKnowledgeModuleData },
   { rpiKnowledgeModuleData },
 ] = await Promise.all([
   import('../packages/jetson-knowledge/dist/index.js'),
   import('../packages/rdk-knowledge/dist/index.js'),
+  import('../packages/rk-knowledge/dist/index.js'),
   import('../packages/rpi-knowledge/dist/index.js'),
 ]);
-const sourceModules = [rdkKnowledgeModuleData, jetsonKnowledgeModuleData, rpiKnowledgeModuleData];
+const sourceModules = [rdkKnowledgeModuleData, jetsonKnowledgeModuleData, rpiKnowledgeModuleData, rkKnowledgeModuleData];
 const artifactVersion = version ?? rdkKnowledgeModuleData.manifest.version;
 const releaseModules = sourceModules.map((moduleData) => ({
   ...moduleData,

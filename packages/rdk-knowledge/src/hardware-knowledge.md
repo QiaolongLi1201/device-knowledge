@@ -169,18 +169,18 @@
 
 ### 14. 板型世代与定位（选型决策树）
 
-| 代次 | 代表板 | 定位 | 典型价位（¥，参考） | 选它的理由 |
+| 代次 | 代表板 | 定位 | 采购口径 | 选它的理由 |
 |------|--------|------|---------------------|------------|
-| 一代 | **RDK X3** / X3 Module | 入门 / 教学 / 替代树莓派 + AI | 499-599 | 最便宜；只做轻量检测 / GPIO / ROS2 入门 |
-| 二代 | **RDK X5** / X5 Module | 主力 / 机器人视觉 / 端侧 AI | 529-799 | 性价比最高；主推 TROS + DOSOD + 小 LLM |
-| 二代+ | RDK Ultra | 高算力工业 | 联系分销 | 上量客户；个人开发者优先 X5/S100 |
-| 三代 | **RDK S100 / S100P** | 具身智能 / 人形机器人 / 大模型 | 1599-2999 | 算控一体；要 LLM/VLM/MCU 实时控制 |
+| 一代 | **RDK X3** / X3 Module | 入门 / 教学 / 替代树莓派 + AI | 入门档，实时价格以官方渠道为准 | 只做轻量检测 / GPIO / ROS2 入门 |
+| 二代 | **RDK X5** / X5 Module | 主力 / 机器人视觉 / 端侧 AI | 主力档，实时价格以官方渠道为准 | 性价比高；主推 TROS + DOSOD + 小 LLM |
+| 二代+ | RDK Ultra | 高算力工业 | 项目/分销口径，以官方渠道为准 | 上量客户；个人开发者优先 X5/S100 |
+| 三代 | **RDK S100 / S100P** | 具身智能 / 人形机器人 / 大模型 | 以官方渠道实时价格为准 | 算控一体；要 LLM/VLM/MCU 实时控制 |
 
 **选型"一句话"决策**：
-1. 学生 / 教学 / 预算 ≤ ¥700 → **X3**（但知道轻量模型上限）
-2. 机器人 / SLAM / YOLO / 小 LLM / ROS2 主开发 → **X5**（8GB 版，¥750 档）
-3. 要跑 LLM 对话 / VLM 多模态 / 端侧 7B 模型 / 实时关节控制 → **S100**（12GB，¥1999）
-4. 想跑 70B+ / 大 VLM / 多路 GMSL 相机 → **S100P**（24GB，¥2799）
+1. 学生 / 教学 / 预算敏感 → **X3**（但知道轻量模型上限）
+2. 机器人 / SLAM / YOLO / 小 LLM / ROS2 主开发 → **X5**（8GB 版优先，实际 SKU/价格以官方渠道为准）
+3. 要跑 LLM 对话 / VLM 多模态 / 端侧 7B 级量化模型 / 实时关节控制 → **S100**（12GB）
+4. 想跑更大模型/VLM 或多路 GMSL 相机 → **S100P**（24GB，具体模型清单以官方 Model Zoo / hobot_llm 文档为准）
 5. **不知道买哪个**：默认推 **X5 8GB 套餐**——覆盖 90% 个人开发者需求，报错踩坑最少（社区样本最多）。
 
 **跨代**的硬约束（反复跟用户强调，不要心存侥幸）：
@@ -194,7 +194,7 @@
 |------|--------|------|-----------------|-----------|-------------|---------|
 | **Bernoulli2** | 旧一代 | X3 / X3 Module | 5 TOPS | 小集，仅 CNN 主干 | ❌ 基本不支持 | ❌（社区有 hobot_llm 小规模试跑） |
 | **Bayes / Bayes-e** | 二代 | X5 / X5 Module / Ultra | 10 TOPS (X5) / 96 TOPS (Ultra) | CNN 全 + 部分 Attention | ⚠️ 部分算子要等价改写 | ⚠️ ≤2B 量化 LLM（如 Qwen2-0.5B）|
-| **Nash / Nash-e** | 三代 | S100 / S100P | 80 / 128 TOPS | 160+ ONNX，CNN + Transformer 深度优化 | ✅ 原生支持 | ✅ 7B 级 LLM、VLM（InternVL / DeepSeek 系列）|
+| **Nash / Nash-e** | 三代 | S100 / S100P | 80 / 128 TOPS | 160+ ONNX，CNN + Transformer 深度优化 | ✅ 原生支持 | ✅ 7B 级量化 LLM、VLM 起步；更大模型以官方清单为准 |
 
 **模型 `.bin` 互通性矩阵**（重要！）：
 
@@ -276,11 +276,11 @@ S100 机器人（推荐）：
 - MCU 固件**不在 `apt`** 里，是独立工具链烧录（通过 JTAG 或 S100 的 Type-C 调试口）
 - Main Domain / MCU Domain 两个独立 UART 调试口，别弄混
 - 要上手 MCU 建议先跑官方 MCU SDK + 示例；纯视觉应用用户可以暂不碰 MCU，只当 BPU 算力板用
-- 相机走扩展板（MIPI 3x 4-lane 或 GMSL 多路），裸板**没有**直接的相机接口
+- 相机走扩展板（MIPI 2x 4-lane 或 GMSL 多路），裸板**没有**直接的相机接口
 
 **S100 vs S100P 买哪个**：
-- S100 (12GB, 80 TOPS, A78AE @1.5GHz, ~¥1999) → 7B 以下 LLM、主流 VLM、双足/四足本体
-- S100P (24GB, 128 TOPS, A78AE @2.0GHz, ~¥2799) → 70B 量化 / 大 VLM / 多路 GMSL / 严肃科研
+- S100 (12GB, 80 TOPS, A78AE @1.5GHz) → 7B 级量化 LLM、主流 VLM、双足/四足本体
+- S100P (24GB, 128 TOPS, A78AE @2.0GHz) → 更大模型/VLM 原型、多路 GMSL、严肃科研；具体模型上限以官方 Model Zoo / hobot_llm 文档为准
 
 ### 18. 用户高频误区与一句话纠正
 
@@ -379,7 +379,7 @@ S100 机器人（推荐）：
 | 校准数据集缺失 / 量化精度暴跌 30%+ | 转换成功但上板 mAP 暴跌 | 必须准备 **50-100 张**与训练集分布一致的图片做 PTQ；RKNN 社区经验（同理适用）：`do_quantization=True` 时校准集决定精度 |
 | 转换时 OOM | 大模型 `hb_mapper makertbin` 进程被杀 | 主机 RAM ≥ 16GB，或用 ZRAM；先试 YOLOv5s 不要直接 YOLOv5x |
 | 工具链 `march` 参数填错 | `hb_mapper checker --march bayes-e` 的 `bayes-e` 不能用在 X3 | X3 → `bernoulli2` / X5/Ultra → `bayes-e` / S100 → `nash-e`（以工具链文档最新写法为准） |
-| 板上 runtime 版本与 .bin 不匹配 | `librknnrt` / `libdnn` 初始化失败 | `dpkg -l \| grep hobot-dnn` 看板上版本；必要时 `sudo apt install --only-upgrade hobot-dnn`；类比 Rockchip 社区的 `librknnrt.so` 版本错配问题，RDK 也有，但相对少 |
+| 板上 runtime 版本与 .bin 不匹配 | `libdnn` / `hobot_dnn` 初始化失败 | `dpkg -l \| grep hobot-dnn` 看板上版本；必要时按官方发布说明升级 `hobot-dnn` / BPU runtime |
 | 在虚拟环境里 import hobot_dnn | `ModuleNotFoundError` | `hobot_dnn` Python bindings 只认系统 Python `/usr/bin/python3`；conda/venv 全部失败，社区反复踩 |
 
 **Moss 应对脚本（遇到模型部署问题时）**：
@@ -393,7 +393,7 @@ S100 机器人（推荐）：
 
 > 用户问 "RDK 和 X 比哪个好" 时非常高频，**不要**回避 —— 但也**不要**抬高 RDK。每个板都有适合的场景。
 
-| 维度 | **RDK X5 (¥529-799)** | Jetson Nano / Orin Nano | 树莓派 5 + AI HAT+ | Orange Pi 5 Plus (RK3588) |
+| 维度 | **RDK X5** | Jetson Nano / Orin Nano | 树莓派 5 + AI HAT+ | Orange Pi 5 Plus (RK3588) |
 |------|-----------------------|-------------------------|---------------------|----------------------------|
 | AI 算力 | 10 TOPS (BPU) | Nano: 472 GFLOPS / Orin Nano: 67 TOPS (Sparse) | Hailo-8L: 13 TOPS / Hailo-8: 26 TOPS | 6 TOPS (NPU RK3588) |
 | CPU | 8x A55 @1.5GHz | A57×4 / A78AE×6 | BCM2712 A76×4 @2.4GHz | A76×4 + A55×4 |
@@ -402,7 +402,7 @@ S100 机器人（推荐）：
 | ROS2 原生支持 | **预装 TROS (Humble)** | 手动装 ROS2 | 手动装 ROS2 | 手动装 ROS2 |
 | 中文社区 / 文档 | **强**（D-Robotics论坛 + CSDN 博客多）| 中（NVIDIA 官方中文翻译 + 博客）| 中 | 弱（Orange Pi 文档较少） |
 | 典型踩坑 | 默认 YUYV 相机、v2.0 tag 卡版本 | Jetpack 版本绑定、Docker ARM 镜像 | 模型+标签没配套、H8/H10 HEF 不通 | 内核 5.10 锁死、vendor fork、librknnrt 版本 |
-| 价格（主流配置） | ~¥750 (8GB) | Jetson Nano ~¥1000+ / Orin Nano ~¥3000 | Pi 5 8GB ~¥600 + AI HAT+ ~¥700 = ~¥1300 | 8GB ~¥700 / 16GB ~¥1000 |
+| 采购口径 | 以官方渠道实时价格为准 | 以 NVIDIA 官方/渠道实时价格为准 | 以 Raspberry Pi 与 Hailo/IMX500 渠道实时价格为准 | 以厂商/渠道实时价格为准 |
 | 选它的理由 | **中文开发者 + ROS2 机器人 + 性价比** | 大 LLM / CUDA 生态迁移 / 全英文工作流 | 想要"完整 Pi 生态 + 加 AI 做课题" | 纯算力堆 + 极客折腾 / 走 Android 生态 |
 | 不适合 | 纯 CUDA 代码迁移 / PyTorch 直跑 | 中文学生 + 预算紧 | ROS2 密集项目（生态弱）| 想要开箱即用 |
 
@@ -410,7 +410,7 @@ S100 机器人（推荐）：
 1. **不要简单说"RDK 更好"**，先问用户**用途 + 预算 + 英文/中文文档偏好**
 2. **承认短板**：RDK 在**纯 CUDA 迁移** / **大 LLM 本地跑** / **英文资料深度**上不如 Jetson
 3. **突出强项**：RDK 在**中文生态 + TROS 预装 + 接口丰富（40pin + CAN + MIPI）+ 性价比**上很有竞争力
-4. **承认类比**：RDK X5 ≈ 同价位段的 **"Jetson 中国学生版"** 或 **"Raspberry Pi 5 + AI HAT+ 的一体化版本"**；S100 ≈ 类 Orin NX 的**国产具身智能平台**
+4. **承认类比**：RDK X5 ≈ 中文文档/ROS2 机器人场景下的 **"Jetson 入门替代"** 或 **"Raspberry Pi 5 + AI HAT+ 的一体化版本"**；S100 ≈ 类 Orin NX 的**国产具身智能平台**
 
 ### 22. LLM / VLM 在 RDK 上的期待校准（避免过度承诺）
 
@@ -424,7 +424,7 @@ S100 机器人（推荐）：
 | **X5 (4GB)** | ≤1B 量化（Qwen2-0.5B / TinyLlama）| token/s 个位数，只能当"玩具" | 体验 / 教学用，别上生产 |
 | **X5 (8GB)** | ≤2B 量化（Qwen2-1.5B / Phi-3-mini-4bit）| 5-15 token/s 量级 | 离线对话、语音小助手（配 hobot_tts/audio）|
 | **S100 (12GB)** | 7B 量化（DeepSeek-R1-Distill-7B / Qwen2.5-7B-Int4）| 可用对话速度 | 端侧大模型真正起点 |
-| **S100P (24GB)** | 14B-70B 量化、VLM（InternVL / MiniCPM-V）| 本地可用 | 严肃科研 / 产品原型 |
+| **S100P (24GB)** | 更大参数量量化 LLM、VLM（以官方 Model Zoo / hobot_llm 清单为准）| 本地可用 | 严肃科研 / 产品原型 |
 
 **RDK 上跑 LLM 的三条路线**（社区里真有人用过，给用户讲清差别）：
 
@@ -435,7 +435,7 @@ S100 机器人（推荐）：
 | **原生 Ollama / llama.cpp**（用户自己装）| 追新模型（DeepSeek R1 等） | ✅ 跑 GGUF 什么都能试；❌ **不走 BPU**，只走 CPU，速度慢很多 |
 
 **遇到"X5 跑 DeepSeek" 类问题的应对**（结合社区博客 "只能当玩具测试着玩，不太能解决大问题"）：
-1. 先问**哪个 DeepSeek**（1.5B / 7B / 70B 差别巨大）
+1. 先问**哪个 DeepSeek**（1.5B / 7B / 14B+ 差别巨大）
 2. 跑 1.5B 量化在 X5 8GB 上**能跑但慢**，可以演示；7B 以上建议 S100
 3. 明确告诉用户：**X5 上的 Ollama/llama.cpp 不走 BPU，BPU 算力没用上**，要用 BPU 要走 `hobot_llm` 或 `hobot_llamacpp` 的 ROS2 节点
 4. 如果用户只是想要"AI 对话"功能，**推荐走云 API（OpenAI 兼容）** + 板上做感知层；端侧只做**轻量 TTS/STT + 关键词唤醒**更实用
@@ -455,7 +455,7 @@ S100 机器人（推荐）：
 | RPi 5 | ~600mA 共享 | **必须外接 5V 电源**，共 GND 回板 |
 | Jetson Orin Nano | ~1A | 单舵机勉强可，多舵机必外接 |
 | RK3588（Orange Pi 5）| ~800mA | 同 Jetson |
-| **RDK X5 / S100** | 建议 **≤500mA**（官方未明确，保守取值）| **舵机/电机/灯带一律外接 5V/6V 电源，共 GND** |
+| **RDK X5 / S100** | X5 官方 40PIN 标注为 1A @ 3.3V / 1A @ 5V；S100 需按扩展板电源预算核对 | **舵机/电机/灯带一律外接 5V/6V 电源，共 GND** |
 
 > Moss 看到 "从 Pin 2 取 5V 驱动一个 SG90 舵机" → 可接；"驱动 4 个舵机 / WS2812 灯带 30 颗以上" → **必须警告外接电源**，否则掉电重启。
 
@@ -589,7 +589,7 @@ duty_cycle = 1_000_000 + (angle / 180) * 1_000_000   # 1ms ~ 2ms
 
 | 参数 | 值 |
 |------|----|
-| 硬件 | PCA9685 16 通道 PWM 扩展板（淘宝 ~¥15，内置 5V LDO） |
+| 硬件 | PCA9685 16 通道 PWM 扩展板（常见低成本模块，通常内置 5V LDO） |
 | 接线 | I2C SDA/SCL/VCC/GND + 独立电源 V+ 给舵机 |
 | I2C 默认地址 | **`0x40`**（A0–A5 可跳线改地址，多片级联最多 62 个） |
 | 频率 | `set_pwm_freq(50)` 标准舵机；LED 调光用 1000 |
@@ -622,7 +622,7 @@ ch0.angle = 90                                  # 90 度
 - 走 **TTL 串口或 RS-485**，`/dev/ttyUSB0`（USB 转 TTL 最稳）
 - Python：`dynamixel-sdk` / `feetech-servo-sdk`
 - 优势：**一条线接几十个舵机**，每个有 ID，可读当前角度/电流/温度
-- 劣势：贵，单个 ¥100+ 起
+- 劣势：相对更贵，采购成本需按实时渠道确认
 - **RDK 场景**：双足/四足 / 机械臂用这种，SG90 等 PWM 舵机只适合玩具级
 
 ### 26. 电机驱动三大范式

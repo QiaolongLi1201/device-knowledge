@@ -1,5 +1,5 @@
 import { DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION, } from '@device-knowledge/core';
-const SOURCE_RETRIEVED_AT = '2026-05-25';
+const SOURCE_RETRIEVED_AT = '2026-05-28';
 const JETSON_SCOPE = {
     platforms: [
         'jetson-agx-orin',
@@ -25,6 +25,7 @@ const promptFragments = [
         content: [
             '## Jetson 设备上下文（知识模块）',
             '- 板级 SDK 为 JetPack（L4T）；容器镜像需匹配 JetPack 版本。',
+            '- Orin 系列当前公开规格存在 Super/MAXN 等功耗模式差异：Orin Nano Dev Kit 可到 67 TOPS，Orin NX 最高 157 TOPS，AGX Orin 最高 275 TOPS；回答时用“最高/取决于 SKU 和功耗模式”。',
             '- 推理优先查阅 TensorRT / CUDA 官方示例；勿套用 RDK BPU / TROS 路径。',
             '- 诊断入口：`tegrastats`、`jtop`（若已装）、以及官方 Jetson 文档中的健康检查命令。',
         ].join('\n'),
@@ -47,7 +48,7 @@ const orinNanoProfile = {
     displayName: 'Jetson Orin Nano',
     soc: 'Orin Nano',
     computeUnit: 'GPU (Ampere iGPU)',
-    computeTops: 40,
+    computeTops: 67,
     cpu: '6-core ARM Cortex-A78AE',
     ramGb: 8,
     modelFormat: 'tensorrt',
@@ -56,12 +57,22 @@ const orinNanoProfile = {
     systemPython: '/usr/bin/python3',
     inferLibPackage: 'tensorrt',
     detectionPatterns: ['tegra', 'jetson', 'nvidia orin'],
-    limitations: ['JetPack / L4T major versions must match prebuilt wheels and containers.'],
+    limitations: [
+        'JetPack / L4T major versions must match prebuilt wheels and containers.',
+        'Compute TOPS depends on module SKU, developer kit, and power mode; verify `nvpmodel` before quoting performance.',
+    ],
     docBaseUrl: 'https://developer.nvidia.com/embedded/jetson',
     capabilityNotes: [
+        'Orin Nano Super Developer Kit is marketed up to 67 INT8 TOPS; module SKUs can be lower.',
         'Use `tegrastats` or `jtop` (if installed) for thermals; `nvidia-smi` when GPU stack exposes it.',
         'Align CUDA / TensorRT versions with the installed JetPack per NVIDIA docs.',
     ],
+    sourceUrls: [
+        'https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/',
+        'https://developer.nvidia.com/embedded/jetson',
+        'https://docs.nvidia.com/jetson/',
+    ],
+    lastReviewedAt: SOURCE_RETRIEVED_AT,
 };
 const jetsonProfiles = {
     'jetson-orin-nano': orinNanoProfile,
@@ -80,10 +91,15 @@ const jetsonProfiles = {
         platform: 'jetson-orin-nx',
         displayName: 'Jetson Orin NX',
         soc: 'Orin NX',
-        computeTops: 100,
+        computeTops: 157,
         cpu: '8-core ARM Cortex-A78AE',
         ramGb: 16,
         detectionPatterns: ['tegra', 'jetson', 'orin nx'],
+        capabilityNotes: [
+            'Orin NX module line is marketed up to 157 INT8 TOPS depending on SKU and power mode.',
+            'Use `tegrastats` or `jtop` (if installed) for thermals; `nvidia-smi` when GPU stack exposes it.',
+            'Align CUDA / TensorRT versions with the installed JetPack per NVIDIA docs.',
+        ],
     },
     'jetson-xavier-nx': {
         ...orinNanoProfile,
@@ -109,7 +125,8 @@ const jetsonProfiles = {
         diagnosticCommand: 'tegrastats --interval 1 | head -n 5',
         systemPython: '/usr/bin/python3',
         capabilityNotes: [
-            ...(orinNanoProfile.capabilityNotes?.filter((note) => !note.includes('TensorRT') || note.includes('compatible')) ?? []),
+            'Use `tegrastats` or `jtop` (if installed) for thermals.',
+            'JetPack 4.x era CUDA/TensorRT stack differs from current Orin JetPack releases.',
             'Legacy Nano: JetPack 4.x, limited TensorRT operator support',
         ],
     },
@@ -147,6 +164,34 @@ export const jetsonKnowledgeModuleData = {
             source: {
                 type: 'official-doc',
                 url: 'https://docs.nvidia.com/jetson/',
+                retrievedAt: SOURCE_RETRIEVED_AT,
+            },
+            scope: JETSON_SCOPE,
+            chunkPolicy: {
+                strategy: 'heading',
+                maxTokens: 800,
+                overlapTokens: 120,
+            },
+            metadataForEmbedding: ['title', 'section', 'tags', 'platforms'],
+            metadataForPrompt: ['title', 'url', 'section', 'lastReviewedAt'],
+        },
+        {
+            id: 'jetson-doc-orin-series',
+            title: 'NVIDIA Jetson Orin Series',
+            url: 'https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/',
+            sourceUrl: 'https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/',
+            sourceType: 'official-doc',
+            section: 'official',
+            tags: ['jetson', 'orin', 'tops', 'super'],
+            language: 'en',
+            status: 'active',
+            confidence: 'high',
+            priority: 72,
+            lastReviewedAt: SOURCE_RETRIEVED_AT,
+            citationLabel: 'NVIDIA Jetson Orin Series',
+            source: {
+                type: 'official-doc',
+                url: 'https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/',
                 retrievedAt: SOURCE_RETRIEVED_AT,
             },
             scope: JETSON_SCOPE,

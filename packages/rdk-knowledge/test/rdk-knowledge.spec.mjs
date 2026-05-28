@@ -14,7 +14,7 @@ test('rdkKnowledgeModuleData validates through core schema', () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.value.manifest.id, 'rdk');
-  assert.equal(result.value.manifest.version, '0.1.2');
+  assert.equal(result.value.manifest.version, '0.1.3');
   assert.equal(result.value.manifest.family, 'rdk');
 });
 
@@ -29,9 +29,9 @@ test('full RDK data adapts to Moss KnowledgeModule', () => {
 
   assert.equal(module.id, 'rdk');
   assert.equal(module.name, 'RDK Development Kit');
-  assert.equal(module.version, '0.1.2');
+  assert.equal(module.version, '0.1.3');
   assert.equal(module.family, 'rdk');
-  assert.deepEqual(module.platforms.sort(), ['rdk-s100', 'rdk-ultra', 'rdk-x3', 'rdk-x5']);
+  assert.deepEqual(module.platforms.sort(), ['rdk-s100', 'rdk-s100p', 'rdk-ultra', 'rdk-x3', 'rdk-x5']);
   assert.equal(module.platformClaimPriority, 999);
 
   assert.equal(module.getDeviceProfiles()['rdk-x5'].displayName, 'RDK X5');
@@ -41,12 +41,22 @@ test('full RDK data adapts to Moss KnowledgeModule', () => {
   assert.ok(module.getCommandPatterns().some((entry) => entry.pattern.test('hrut_smi')));
   assert.ok(module.getFailureHints().some((entry) => entry.errorPattern.test('unsupported op')));
   assert.equal(module.getSkills?.()[0].id, 'rdk-ecosystem');
+  assert.ok(rdkKnowledgeModuleData.skills?.every((entry) => entry.scope?.platforms?.includes('rdk-s100p')));
   assert.match(module.getEcosystemPrompt(), /RDK 产品生态/);
   assert.match(module.getEcosystemPrompt(), /RDK X5/);
   assert.deepEqual(module.getResearchSeeds?.('rdk-x5'), [
     'https://developer.d-robotics.cc/rdk_doc/',
     'https://github.com/D-Robotics',
   ]);
+  assert.equal(module.getDeviceProfiles()['rdk-s100p'].bpuTops, 128);
+  assert.equal(module.getDeviceProfiles()['rdk-s100'].cameraInterfaces.find((entry) => entry.type === 'mipi')?.count, 2);
+  assert.equal(module.getDeviceProfiles()['rdk-s100p'].cameraInterfaces.find((entry) => entry.type === 'mipi')?.count, 2);
+  assert.equal(rdkKnowledgeModuleData.manifest.compatibility.minRdkStudio, '1.2.1');
+  assert.ok(
+    rdkKnowledgeModuleData.docs?.some(
+      (entry) => entry.title.includes('S100/S100P') && entry.scope?.platforms?.includes('rdk-s100p'),
+    ),
+  );
 });
 
 test('unknown platforms use ecosystem research seeds', () => {

@@ -8,8 +8,9 @@ remote publishing capabilities are marked as roadmap.
 ## Release Units
 
 - **Source packages:** `@device-knowledge/rdk-knowledge`,
-  `@device-knowledge/jetson-knowledge`, and
-  `@device-knowledge/rpi-knowledge` in `packages/*-knowledge`.
+  `@device-knowledge/jetson-knowledge`,
+  `@device-knowledge/rpi-knowledge`, and
+  `@device-knowledge/rk-knowledge` in `packages/*-knowledge`.
 - **Validation package:** `@device-knowledge/core`.
 - **Moss adapter:** `@device-knowledge/dmoss-adapter`.
 - **Release artifact:** `dist/artifacts/rdk-device-knowledge.artifact.json`.

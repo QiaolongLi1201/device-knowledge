@@ -26,7 +26,7 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
   { title: 'S100 快速上手',          url: `${DOC_S100}/Quick_start/hardware_introduction/rdk_s100`,     section: 'getting-started', tags: ['s100', 's100p', 'quick-start', 'setup'] },
   { title: 'X3 系统镜像烧录',        url: `${DOC_BASE}/Quick_start/install_os/rdk_x3`,                  section: 'getting-started', tags: ['image', 'flash', 'burn', 'sd-card', 'x3'] },
   { title: 'X5 系统镜像烧录',        url: `${DOC_BASE}/Quick_start/install_os/rdk_x5`,                  section: 'getting-started', tags: ['image', 'flash', 'burn', 'sd-card', 'x5'] },
-  { title: 'S100 系统镜像烧录',      url: `${DOC_S100}/Quick_start/install_os/rdk_s100`,            section: 'getting-started', tags: ['image', 'flash', 'burn', 'emmc', 's100'] },
+  { title: 'S100 系统镜像烧录',      url: `${DOC_S100}/Quick_start/install_os/rdk_s100`,            section: 'getting-started', tags: ['image', 'flash', 'burn', 'emmc', 's100', 's100p'] },
   { title: '网络配置（有线/WiFi/蓝牙）', url: `${DOC_BASE}/System_configuration/network_blueteeth`,      section: 'getting-started', tags: ['network', 'wifi', 'ethernet', 'bluetooth', 'ip', 'nmcli'] },
   { title: '远程登录（SSH/串口）',   url: `${DOC_BASE}/Quick_start/remote_login`,                       section: 'getting-started', tags: ['ssh', 'serial', 'putty', 'login'] },
   { title: 'RDK Studio 设备管理',    url: `${DOC_BASE}/Quick_start/RDK_Studio/Device_management/hardware_resource`, section: 'studio', tags: ['studio', 'device', 'connect', 'resource', 'management'] },
@@ -68,8 +68,8 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
 
   // ── LLM / VLM ────────────────────────────────────────────────────
   { title: '端侧大模型部署 (LLM)', url: `${DOC_BASE}/Robot_development/boxs/generate/hobot_llm`, section: 'llm', tags: ['llm', 'large-language-model', 'deepseek', 'qwen', 'on-device', 'transformers'] },
-  { title: 'S100 端侧大模型部署 (LLM)', url: `${DOC_S100}/Robot_development/boxs/generate/hobot_llm`, section: 'llm', tags: ['s100', 'llm', 'large-language-model', 'deepseek', 'qwen', 'on-device'] },
-  { title: 'S100 文本图片特征检索', url: `${DOC_S100}/Robot_development/boxs/function/hobot_clip`, section: 'llm', tags: ['s100', 'vlm', 'vision-language', 'clip', 'multimodal'] },
+  { title: 'S100 端侧大模型部署 (LLM)', url: `${DOC_S100}/Robot_development/boxs/generate/hobot_llm`, section: 'llm', tags: ['s100', 's100p', 'llm', 'large-language-model', 'deepseek', 'qwen', 'on-device'] },
+  { title: 'S100 文本图片特征检索', url: `${DOC_S100}/Robot_development/boxs/function/hobot_clip`, section: 'llm', tags: ['s100', 's100p', 'vlm', 'vision-language', 'clip', 'multimodal'] },
   { title: 'TTS/ASR 语音',         url: `${DOC_BASE}/Robot_development/boxs/audio/hobot_audio`, section: 'llm', tags: ['tts', 'asr', 'speech', 'voice', 'audio'] },
 
   // ── Hardware / GPIO ──────────────────────────────────────────────
@@ -79,7 +79,7 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
   { title: 'SPI 接口使用',     url: `${DOC_BASE}/Basic_Application/01_40pin_user_sample/spi`,  section: 'hardware', tags: ['spi', 'bus', 'peripheral'] },
   { title: 'UART 串口通信',    url: `${DOC_BASE}/Basic_Application/01_40pin_user_sample/uart`, section: 'hardware', tags: ['uart', 'serial', 'tty', 'rs232'] },
   { title: 'PWM 输出控制',     url: `${DOC_BASE}/Basic_Application/01_40pin_user_sample/pwm`,  section: 'hardware', tags: ['pwm', 'motor', 'servo', 'duty-cycle'] },
-  { title: 'S100 MCU IPC',     url: `${DOC_S100}/Advanced_development/mcu_development/S100/mcu_ipc`, section: 'hardware', tags: ['s100', 'mcu', 'r52', 'ipc', 'realtime'] },
+  { title: 'S100 MCU IPC',     url: `${DOC_S100}/Advanced_development/mcu_development/S100/mcu_ipc`, section: 'hardware', tags: ['s100', 's100p', 'mcu', 'r52', 'ipc', 'realtime'] },
   { title: 'X5 板级 IO C 库（x5-hobot-io）', url: 'https://github.com/D-Robotics/x5-hobot-io', section: 'hardware', tags: ['x5', 'io', 'gpio', 'i2c', 'spi', 'pwm', 'c-library'] },
   { title: 'X5 平台工具集（x5-hobot-utils）', url: 'https://github.com/D-Robotics/x5-hobot-utils', section: 'hardware', tags: ['x5', 'utils', 'system', 'flash', 'tool'] },
   { title: 'X3 镜像构建（rdk-gen）',           url: 'https://github.com/D-Robotics/rdk-gen', section: 'hardware', tags: ['x3', 'image', 'flash', 'rdk-gen', 'build'] },
@@ -88,7 +88,7 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
   // ── System ───────────────────────────────────────────────────────
   { title: '系统配置入口',      url: `${DOC_BASE}/System_configuration`,       section: 'system', tags: ['system', 'config', 'srpi-config'] },
   { title: '系统更新与升级',    url: `${DOC_BASE}/Release_Note/release_note`, section: 'system', tags: ['update', 'upgrade', 'apt', 'ota', 'release'] },
-  { title: 'S100 文件共享工具', url: `${DOC_S100}/System_configuration/share_file_tool`, section: 'system', tags: ['s100', 'storage', 'file', 'share', 'mount'] },
+  { title: 'S100 文件共享工具', url: `${DOC_S100}/System_configuration/share_file_tool`, section: 'system', tags: ['s100', 's100p', 'storage', 'file', 'share', 'mount'] },
   { title: '性能调优与散热',    url: `${DOC_BASE}/System_configuration/frequency_management`, section: 'system', tags: ['performance', 'thermal', 'cooling', 'cpu-freq', 'governor'] },
   { title: '多媒体编解码',      url: `${DOC_BASE}/Advanced_development/multimedia_development/overview`, section: 'system', tags: ['video', 'codec', 'h264', 'h265', 'encode', 'decode'] },
 
@@ -97,7 +97,7 @@ export const RDK_DOC_INDEX: DocIndexEntry[] = [
   { title: '开发者社区论坛',       url: FORUM_URL,   section: 'ecosystem', tags: ['forum', 'community', 'qa', 'discussion'] },
   { title: 'GitHub D-Robotics 仓库', url: 'https://github.com/D-Robotics',               section: 'ecosystem', tags: ['github', 'source', 'open-source', 'hobot'] },
   { title: 'Model Zoo (X3/X5/Ultra · Bayes)', url: 'https://github.com/D-Robotics/rdk_model_zoo', section: 'ecosystem', tags: ['model-zoo', 'pretrained', 'yolo', 'detection', 'bin', 'bayes', 'bernoulli2'] },
-  { title: 'Model Zoo (S100/S100P · Nash)',   url: 'https://github.com/D-Robotics/rdk_model_zoo_s', section: 'ecosystem', tags: ['model-zoo', 's100', 'nash', 'pretrained', 'llm', 'vlm', 'dosod'] },
+  { title: 'Model Zoo (S100/S100P · Nash)',   url: 'https://github.com/D-Robotics/rdk_model_zoo_s', section: 'ecosystem', tags: ['model-zoo', 's100', 's100p', 'nash', 'pretrained', 'llm', 'vlm', 'dosod'] },
   { title: 'RDK 文档源码',         url: 'https://github.com/D-Robotics/rdk_doc',          section: 'ecosystem', tags: ['docs', 'source', 'markdown', 'rdk_doc'] },
   { title: '系统镜像下载清单',     url: 'https://github.com/D-Robotics/system_download',  section: 'ecosystem', tags: ['download', 'image', 'firmware', 'release'] },
 ];

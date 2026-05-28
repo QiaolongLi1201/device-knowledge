@@ -5,7 +5,7 @@ Open trusted device knowledge packages and MCP access for robotics agents.
 Device Knowledge is the source repository for data-only device knowledge that can
 be bundled with RDK Studio, adapted into Moss, and later published as remote
 knowledge packages. The current implementation provides top-level module
-schema, validation, official RDK data plus starter Jetson/Raspberry Pi
+schema, validation, official RDK data plus starter Jetson/Raspberry Pi/Rockchip
 packages, a D-Moss adapter, an authoring lint, and an artifact builder.
 Record-level provenance is now part of the v2 core schema; v1 inputs are still
 accepted through a legacy migration path. Remote update hosting and
@@ -26,7 +26,7 @@ npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
 ```
 
 The output is `dist/artifacts/rdk-device-knowledge.artifact.json`. It contains
-the official RDK module plus starter Jetson and Raspberry Pi modules. Publish
+the official RDK module plus starter Jetson, Raspberry Pi, and Rockchip modules. Publish
 that JSON for remote updates, or sync it into RDK Studio's bundled baseline
 before a desktop release.
 
@@ -39,6 +39,30 @@ This repository is intended to host device-domain knowledge independently from
 RDK Studio. RDK Studio should consume the published packages without changing
 the user experience, while other agents can attach the same knowledge through
 MCP.
+
+## Agent Runtime Consumption
+
+`@device-knowledge/core` now exposes a Moss-independent context pack helper for
+agents that need the same trusted data without linking against D-Moss runtime
+types:
+
+```ts
+import { buildAgentKnowledgeContext } from '@device-knowledge/core';
+import { rdkKnowledgeModuleData } from '@device-knowledge/rdk-knowledge';
+
+const context = buildAgentKnowledgeContext(rdkKnowledgeModuleData, {
+  platform: 'rdk-x5',
+  maxDocs: 8,
+});
+
+console.log(context.markdown);
+```
+
+The returned object includes filtered profiles, source-backed docs, prompt
+fragments, failure hints, endorsed skills, and a compact Markdown rendering.
+Moss and RDK Studio should continue to use `@device-knowledge/dmoss-adapter`
+when they need a Moss `KnowledgeModule`; Claude/Codex/Qwen-style tools, MCP
+servers, CLIs, and eval harnesses can use the core context pack directly.
 
 ## Goals
 
@@ -61,6 +85,7 @@ MCP.
 | `packages/rdk-knowledge` | Official RDK device knowledge module data and exports. |
 | `packages/jetson-knowledge` | Official Jetson starter knowledge module data and exports. |
 | `packages/rpi-knowledge` | Official Raspberry Pi starter knowledge module data and exports. |
+| `packages/rk-knowledge` | Official Rockchip RK starter knowledge module data and exports. |
 | `packages/mcp-server` | Standalone read-only MCP server for agent access. |
 | `packages/dmoss-adapter` | Adapter from device knowledge modules to D-Moss `KnowledgeModule`. |
 | `modules/` | Data-first device module bundles and examples. |

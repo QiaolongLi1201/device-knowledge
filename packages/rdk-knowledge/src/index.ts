@@ -56,7 +56,7 @@ export const RDK_ECOSYSTEM_TEXT = buildEcosystemText();
 export { getRdkResearchSeeds } from './rdk-device-profiles.js';
 
 const RDK_SCOPE: KnowledgeCompatibilityScope = {
-  platforms: ['rdk-x3', 'rdk-x5', 'rdk-ultra', 'rdk-s100'],
+  platforms: ['rdk-x3', 'rdk-x5', 'rdk-ultra', 'rdk-s100', 'rdk-s100p'],
   boards: ['x3', 'x5', 'ultra', 's100', 's100p'],
   socs: ['bernoulli2', 'bayes', 'nash'],
 };
@@ -65,13 +65,15 @@ const PLATFORM_BOARD_MAP: Record<string, string[]> = {
   'rdk-x3': ['x3'],
   'rdk-x5': ['x5'],
   'rdk-ultra': ['ultra'],
-  'rdk-s100': ['s100', 's100p'],
+  'rdk-s100': ['s100'],
+  'rdk-s100p': ['s100p'],
 };
 const PLATFORM_SOC_MAP: Record<string, string[]> = {
   'rdk-x3': ['bernoulli2'],
   'rdk-x5': ['bayes'],
   'rdk-ultra': ['bayes'],
   'rdk-s100': ['nash'],
+  'rdk-s100p': ['nash'],
 };
 
 function slugify(input: string): string {
@@ -98,7 +100,7 @@ function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndex
   const sourceType = inferSourceType(entry.url);
   const specificPlatforms = entry.tags
     .filter((tag) => ['x3', 'x5', 'ultra', 's100', 's100p'].includes(tag))
-    .map((tag) => (tag === 's100p' ? 'rdk-s100' : `rdk-${tag}`));
+    .map((tag) => `rdk-${tag}`);
   return {
     id: `rdk-doc-${entry.section}-${(slugify(entry.title || entry.url) || `entry-${index}`).slice(0, 56)}-${shortHash(entry.url)}`,
     title: entry.title,
@@ -111,12 +113,12 @@ function enrichDoc(entry: typeof RDK_DOC_INDEX[number], index: number): DocIndex
     status: 'active',
     confidence: sourceType === 'official-doc' || sourceType === 'github' ? 'high' : 'medium',
     priority: 80,
-    lastReviewedAt: '2026-05-25',
+    lastReviewedAt: '2026-05-28',
     citationLabel: `${entry.title} (${entry.section})`,
     source: {
       type: sourceType,
       url: entry.url,
-      retrievedAt: '2026-05-25',
+      retrievedAt: '2026-05-28',
     },
     scope: (() => {
       const narrowedPlatforms = specificPlatforms.length ? [...new Set(specificPlatforms)] : (RDK_SCOPE.platforms ?? []);
@@ -145,14 +147,14 @@ function enrichPromptFragment(entry: typeof RDK_PROMPT_FRAGMENTS[number]): Promp
     source: {
       type: 'generated',
       repo: 'device-knowledge/packages/rdk-knowledge',
-      retrievedAt: '2026-05-25',
+      retrievedAt: '2026-05-28',
     },
     scope: RDK_SCOPE,
     tags: ['prompt', entry.section, entry.tier, entry.mode],
     language: 'zh-CN',
     status: 'active',
     confidence: 'high',
-    lastReviewedAt: '2026-05-25',
+    lastReviewedAt: '2026-05-28',
     citationLabel: `RDK prompt fragment: ${entry.id}`,
   };
 }
@@ -165,14 +167,14 @@ function enrichCommandPattern(entry: typeof RDK_COMMAND_PATTERNS[number]): Comma
     source: {
       type: 'generated',
       repo: 'device-knowledge/packages/rdk-knowledge',
-      retrievedAt: '2026-05-25',
+      retrievedAt: '2026-05-28',
     },
     scope: RDK_SCOPE,
     tags: ['command', entry.category, entry.riskLevel],
     language: 'en',
     status: 'active',
     confidence: 'high',
-    lastReviewedAt: '2026-05-25',
+    lastReviewedAt: '2026-05-28',
     citationLabel: `RDK command pattern: ${entry.description}`,
   };
 }
@@ -185,14 +187,14 @@ function enrichFailureHint(entry: typeof RDK_FAILURE_HINTS[number], index: numbe
     source: {
       type: entry.docUrl ? inferSourceType(entry.docUrl) : 'generated',
       ...(entry.docUrl ? { url: entry.docUrl } : { repo: 'device-knowledge/packages/rdk-knowledge' }),
-      retrievedAt: '2026-05-25',
+      retrievedAt: '2026-05-28',
     },
     scope: RDK_SCOPE,
     tags: ['failure-hint'],
     language: 'zh-CN',
     status: 'active',
     confidence: entry.docUrl ? 'high' : 'medium',
-    lastReviewedAt: '2026-05-25',
+    lastReviewedAt: '2026-05-28',
     citationLabel: `RDK failure hint ${index + 1}`,
   };
 }
@@ -204,7 +206,7 @@ function enrichSkill(entry: typeof RDK_ENDORSED_SKILLS[number]): EndorsedSkillRe
     source: {
       type: 'generated',
       repo: 'device-knowledge/packages/rdk-knowledge',
-      retrievedAt: '2026-05-25',
+      retrievedAt: '2026-05-28',
     },
     scope: {
       platforms: entry.platforms ? [...entry.platforms] : RDK_SCOPE.platforms,
@@ -213,7 +215,7 @@ function enrichSkill(entry: typeof RDK_ENDORSED_SKILLS[number]): EndorsedSkillRe
     language: 'en',
     status: 'active',
     confidence: 'high',
-    lastReviewedAt: '2026-05-25',
+    lastReviewedAt: '2026-05-28',
     citationLabel: `RDK endorsed skill: ${entry.id}`,
   };
 }
@@ -223,13 +225,13 @@ export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: 'rdk',
     name: 'RDK Development Kit',
-    version: '0.1.2',
+    version: '0.1.3',
     origin: 'official',
     family: 'rdk',
     priority: 0,
     compatibility: {
       dmossKnowledgeModule: '^0.3.1',
-      minRdkStudio: '0.1.0',
+      minRdkStudio: '1.2.1',
     },
   },
   profiles: getRdkDeviceProfiles(),

@@ -41,3 +41,9 @@ export {
   type ModuleConflictResolution,
   type ModuleSpecificity,
 } from './priority.js';
+
+export {
+  buildAgentKnowledgeContext,
+  type AgentKnowledgeContext,
+  type AgentKnowledgeContextOptions,
+} from './agent-context.js';
