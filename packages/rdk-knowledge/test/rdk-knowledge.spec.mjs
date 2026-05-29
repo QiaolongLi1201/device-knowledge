@@ -14,7 +14,7 @@ test('rdkKnowledgeModuleData validates through core schema', () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.value.manifest.id, 'rdk');
-  assert.equal(result.value.manifest.version, '0.1.3');
+  assert.equal(result.value.manifest.version, '0.1.4');
   assert.equal(result.value.manifest.family, 'rdk');
 });
 
@@ -29,7 +29,7 @@ test('full RDK data adapts to Moss KnowledgeModule', () => {
 
   assert.equal(module.id, 'rdk');
   assert.equal(module.name, 'RDK Development Kit');
-  assert.equal(module.version, '0.1.3');
+  assert.equal(module.version, '0.1.4');
   assert.equal(module.family, 'rdk');
   assert.deepEqual(module.platforms.sort(), ['rdk-s100', 'rdk-s100p', 'rdk-ultra', 'rdk-x3', 'rdk-x5']);
   assert.equal(module.platformClaimPriority, 999);

@@ -58,6 +58,22 @@ export const RDK_FAILURE_HINTS: FailureHint[] = [
     docUrl: `${DOC_BASE}/Advanced_development/toolchain_development/expert/api_reference`,
   },
 
+  // ── APT / TROS Install ──────────────────────────────────────────
+  {
+    errorPattern: /NO_PUBKEY|gpg.*key.*expired|public key.*not available|公钥.*不可用/i,
+    suggestion: 'APT 公钥失效 — D-Robotics 源公钥过期或源配置不完整：优先按官方 TROS 安装文档重新配置 apt source/keyring，再 `sudo apt update` 验证',
+    docUrl: `${DOC_BASE}/Robot_development/quick_start/install_tros`,
+  },
+  {
+    errorPattern: /E: Unable to locate package tros[-_]?(humble|foxy)|无法找到软件包 tros/i,
+    suggestion: 'TROS 包找不到 — apt source 未配置或版本不匹配：`sudo apt update` 后仍失败请检查 /etc/apt/sources.list.d/ 是否含 d-robotics 源；TROS 默认走 humble',
+    docUrl: `${DOC_BASE}/Robot_development/quick_start/install_tros`,
+  },
+  {
+    errorPattern: /apt.*Could not get lock|dpkg.*locked|E: Could not open lock file/i,
+    suggestion: 'APT 锁未释放 — 先用 `ps -ef | grep -E "apt|dpkg"` 确认没有 apt/dpkg 进程；若上次安装中断，再执行 `sudo dpkg --configure -a` 后重试 `sudo apt update`',
+  },
+
   // ── TROS / ROS2 ─────────────────────────────────────────────────
   {
     errorPattern: /source.*setup\.bash.*No such file|\/opt\/tros.*not found/i,
@@ -83,6 +99,10 @@ export const RDK_FAILURE_HINTS: FailureHint[] = [
     errorPattern: /DDS.*error|rmw.*error|RTPS/i,
     suggestion: 'DDS 通信错误 — 检查网络配置；多机通信需 `ROS_DOMAIN_ID` 一致，防火墙放行 UDP 7400-7500+',
   },
+  {
+    errorPattern: /multiple publishers.*same topic|domain.*conflict|多个发布者.*同名 topic/i,
+    suggestion: '同网段多设备 ROS_DOMAIN_ID 冲突 — 在 ~/.bashrc 设置不同 ID：`export ROS_DOMAIN_ID=42`（0-101）；重新 `source ~/.bashrc` 后再启动节点',
+  },
 
   // ── Permissions / Access ─────────────────────────────────────────
   {
@@ -96,6 +116,10 @@ export const RDK_FAILURE_HINTS: FailureHint[] = [
   {
     errorPattern: /Read-only file system|EROFS/i,
     suggestion: '只读文件系统 — `/app` 等目录可能只读；写入 `/tmp`、`/userdata`、`$HOME` 等可写路径',
+  },
+  {
+    errorPattern: /lsusb.*no permission|cannot open USB device|libusb.*LIBUSB_ERROR_ACCESS/i,
+    suggestion: 'USB 设备无权限 — 添加 udev rules：`sudo tee /etc/udev/rules.d/99-rdk.rules <<< \'SUBSYSTEM=="usb",MODE="0666"\' && sudo udevadm control --reload && sudo udevadm trigger`；再重新插拔',
   },
 
   // ── Network ──────────────────────────────────────────────────────
@@ -116,6 +140,30 @@ export const RDK_FAILURE_HINTS: FailureHint[] = [
   {
     errorPattern: /No space left on device|ENOSPC/i,
     suggestion: '磁盘已满 — `df -h` 查各分区；清理 `/tmp`、apt 缓存（`apt clean`）、旧日志；SD 卡可 `resize2fs` 扩展',
+  },
+
+  // ── Power / Undervoltage ─────────────────────────────────────────
+  {
+    errorPattern: /under[-_ ]?voltage|throttled.*0x[0-9a-f]+|undervoltage detected|供电不足/i,
+    suggestion: 'RDK 供电不足 — 需 5V/3A 以上电源（Ultra/S100 推荐 5V/5A）；HDMI 红灯快闪、莫名重启即供电不足；尽量用官方电源，避免 USB-A→USB-C 转接',
+  },
+  {
+    errorPattern: /System halted|kernel panic.*hung|hung_task.*timeout/i,
+    suggestion: '系统挂死 — 首查供电（dmesg 是否有 under-voltage）、再查温度（`cat /sys/class/thermal/thermal_zone*/temp` > 85°C 需散热）、最后查 SD 卡是否坏块',
+  },
+
+  // ── Flashing / Imaging ──────────────────────────────────────────
+  {
+    errorPattern: /dd:.*Read-only file system|write[ -]?protect|无法写入.*只读/i,
+    suggestion: 'SD 卡写保护 — 拨动适配器侧面的 LOCK 开关至解锁位；某些读卡器无法正确传递写保护信号，建议换 USB 读卡器',
+  },
+  {
+    errorPattern: /GPT.*corrupt|Backup GPT table is corrupt|invalid GPT|gptcheck.*failed/i,
+    suggestion: 'GPT 分区表损坏 — 用 `sudo sgdisk -e /dev/sdX` 修复备份头；若刷机中断导致整盘脏，建议 `sudo wipefs -a /dev/sdX` 后重刷整镜像',
+  },
+  {
+    errorPattern: /xburn.*(failed|error)|mcu.*upgrade.*fail|S100.*MCU.*(失败|错误)/i,
+    suggestion: 'S100 MCU 升级失败 — 确认拨码/按键已进入官方文档要求的下载模式，USB 直连不走 hub；优先用 RDK Studio 或官方 xburn 工具重试，并记录完整日志',
   },
 
   // ── Python ───────────────────────────────────────────────────────

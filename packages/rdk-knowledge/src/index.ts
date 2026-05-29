@@ -225,7 +225,7 @@ export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: 'rdk',
     name: 'RDK Development Kit',
-    version: '0.1.3',
+    version: '0.1.4',
     origin: 'official',
     family: 'rdk',
     priority: 0,
