@@ -100,4 +100,15 @@ export const HOST_SOFTWARE_FAILURE_HINTS: FailureHint[] = [
     tags: ['node', 'dev-server', 'port', 'eaddrinuse'],
     priority: 84,
   }),
+  hint({
+    id: 'host-failure-esm-module-resolution',
+    errorPattern: {
+      source: 'ERR_MODULE_NOT_FOUND|Cannot find module .+ imported from|ERR_UNSUPPORTED_DIR_IMPORT|Did you mean to import .+\\.js',
+      flags: 'i',
+    },
+    suggestion: 'Runtime ESM resolution failure (distinct from a TypeScript compile error). In "type":"module" / NodeNext projects, relative imports need an explicit ".js" extension even from .ts sources, directory imports need an explicit index file, and the path/case must match on disk. Fix the import specifier rather than switching module systems or adding casts.',
+    docUrl: 'https://nodejs.org/api/esm.html#mandatory-file-extensions',
+    tags: ['node', 'esm', 'module-resolution', 'typescript'],
+    priority: 80,
+  }),
 ];
