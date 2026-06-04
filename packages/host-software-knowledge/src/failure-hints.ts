@@ -89,4 +89,15 @@ export const HOST_SOFTWARE_FAILURE_HINTS: FailureHint[] = [
     tags: ['electron-builder', 'code-signing', 'packaging'],
     priority: 80,
   }),
+  hint({
+    id: 'host-failure-dev-server-port-in-use',
+    errorPattern: {
+      source: 'EADDRINUSE|listen EADDRINUSE|address already in use|port\\s+\\d+\\s+is\\s+already\\s+in\\s+use',
+      flags: 'i',
+    },
+    suggestion: 'Dev-server/HTTP port is already held — usually a leftover process from a previous run, not a code bug. Find the holder (`lsof -nP -iTCP:<port> -sTCP:LISTEN` on macOS/Linux, `netstat -ano | findstr :<port>` on Windows), stop it, then restart; or start on a different port. Confirm the port is free before assuming the new server bound.',
+    docUrl: 'https://nodejs.org/api/errors.html#common-system-errors',
+    tags: ['node', 'dev-server', 'port', 'eaddrinuse'],
+    priority: 84,
+  }),
 ];
