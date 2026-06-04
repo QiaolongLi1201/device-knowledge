@@ -14,6 +14,7 @@ import {
   type KnowledgeSourceType,
   type PromptFragment,
   type SerializedRegex,
+  type WorkflowGuide,
 } from '@device-knowledge/core';
 
 import { RDK_COMMAND_PATTERNS } from './command-patterns.js';
@@ -22,6 +23,7 @@ import { RDK_FAILURE_HINTS } from './failure-hints.js';
 import { RDK_PROMPT_FRAGMENTS } from './prompt-fragments.js';
 import { getRdkDeviceProfiles, getRdkResearchSeeds } from './rdk-device-profiles.js';
 import { RDK_ENDORSED_SKILLS } from './rdk-endorsed-skills.js';
+import { RDK_WORKFLOW_GUIDES } from './workflow-guides.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -220,12 +222,50 @@ function enrichSkill(entry: typeof RDK_ENDORSED_SKILLS[number]): EndorsedSkillRe
   };
 }
 
+function enrichWorkflowGuide(entry: typeof RDK_WORKFLOW_GUIDES[number]): WorkflowGuide {
+  const sourceType = inferSourceType(entry.sourceUrl);
+  const platforms = entry.platforms ?? RDK_SCOPE.platforms;
+  const boards = [...new Set((platforms ?? []).flatMap((platform) => PLATFORM_BOARD_MAP[platform] ?? []))];
+  const socs = [...new Set((platforms ?? []).flatMap((platform) => PLATFORM_SOC_MAP[platform] ?? []))];
+  return {
+    id: entry.id,
+    title: entry.title,
+    category: entry.category,
+    triggers: entry.triggers,
+    prerequisites: entry.prerequisites,
+    steps: entry.steps,
+    verification: entry.verification,
+    safetyNotes: entry.safetyNotes,
+    expectedOutcome: entry.expectedOutcome,
+    relatedDocIds: entry.relatedDocIds,
+    relatedUrls: entry.relatedUrls,
+    source: {
+      type: sourceType,
+      url: entry.sourceUrl,
+      retrievedAt: '2026-06-04',
+    },
+    scope: {
+      ...RDK_SCOPE,
+      platforms,
+      boards: boards.length ? boards : RDK_SCOPE.boards,
+      socs: socs.length ? socs : RDK_SCOPE.socs,
+    },
+    tags: ['workflow', entry.category, ...entry.triggers],
+    language: 'zh-CN',
+    status: 'active',
+    confidence: sourceType === 'official-doc' || sourceType === 'github' ? 'high' : 'medium',
+    priority: entry.priority,
+    lastReviewedAt: '2026-06-04',
+    citationLabel: `RDK workflow guide: ${entry.title}`,
+  };
+}
+
 export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText: string } = {
   manifest: {
     schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
     id: 'rdk',
     name: 'RDK Development Kit',
-    version: '0.1.4',
+    version: '0.1.5',
     origin: 'official',
     family: 'rdk',
     priority: 0,
@@ -240,5 +280,6 @@ export const rdkKnowledgeModuleData: DeviceKnowledgeModuleData & { ecosystemText
   commandPatterns: RDK_COMMAND_PATTERNS.map(enrichCommandPattern),
   failureHints: RDK_FAILURE_HINTS.map(enrichFailureHint),
   skills: RDK_ENDORSED_SKILLS.map(enrichSkill),
+  workflowGuides: RDK_WORKFLOW_GUIDES.map(enrichWorkflowGuide),
   ecosystemText: RDK_ECOSYSTEM_TEXT,
 };

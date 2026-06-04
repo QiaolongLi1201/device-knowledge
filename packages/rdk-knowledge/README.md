@@ -1,11 +1,11 @@
 # @device-knowledge/rdk-knowledge
 
-Minimal data-first RDK knowledge package.
+Data-first RDK knowledge package.
 
-This package is the first external RDK dataset for the `device-knowledge`
-workspace. It intentionally starts with one small RDK X5 module so the schema,
-validation, D-Moss adapter, and Studio compatibility path can be verified before
-the full RDK Studio knowledge surface is migrated.
+This package is the official RDK dataset for the `device-knowledge` workspace.
+It contains source-backed board profiles, documentation index entries, prompt
+fragments, command patterns, failure hints, endorsed skills, workflow guides,
+and ecosystem prompt text.
 
 ## Public Surface
 

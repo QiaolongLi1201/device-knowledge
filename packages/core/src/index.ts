@@ -20,6 +20,9 @@ export {
   type SerializedRegex,
   type ValidationIssue,
   type ValidationResult,
+  type WorkflowGuide,
+  type WorkflowStep,
+  type WorkflowVerification,
 } from './types.js';
 
 export {

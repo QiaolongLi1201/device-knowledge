@@ -114,6 +114,33 @@ export interface EndorsedSkillRef extends KnowledgeRecordBase {
   priority?: number;
 }
 
+export interface WorkflowStep {
+  title: string;
+  detail: string;
+  command?: string;
+  riskLevel?: CommandRiskLevel;
+  expected?: string;
+}
+
+export interface WorkflowVerification {
+  title: string;
+  command?: string;
+  expected: string;
+}
+
+export interface WorkflowGuide extends KnowledgeRecordBase {
+  title: string;
+  category: string;
+  triggers: string[];
+  prerequisites?: string[];
+  steps: WorkflowStep[];
+  verification: WorkflowVerification[];
+  safetyNotes?: string[];
+  expectedOutcome: string;
+  relatedDocIds?: string[];
+  relatedUrls?: string[];
+}
+
 export interface DeviceKnowledgeModuleData {
   manifest: DeviceKnowledgeModuleManifest;
   profiles?: Record<string, unknown>;
@@ -122,6 +149,7 @@ export interface DeviceKnowledgeModuleData {
   commandPatterns?: CommandPattern[];
   failureHints?: FailureHint[];
   skills?: EndorsedSkillRef[];
+  workflowGuides?: WorkflowGuide[];
   ecosystemText?: string;
 }
 

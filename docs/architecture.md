@@ -20,11 +20,12 @@ trusted knowledge package
 The current implementation already provides the top-level module contract in
 `@device-knowledge/core`, the official RDK dataset plus starter Jetson/Raspberry
 Pi datasets in `@device-knowledge/*-knowledge`, and a D-Moss bridge in
-`@device-knowledge/dmoss-adapter`. Typed record-level provenance, record id
-uniqueness validation, stable URL-hashed RDK doc ids, authoring lint,
-multi-module artifact checksum production, and host-side checksum validation
-are implemented. Remote hosting, release manifest discovery, Rockchip/RK source
-data, and cryptographic signature verification are release/host roadmap items.
+`@device-knowledge/dmoss-adapter`. Typed record-level provenance,
+source-backed workflow guide records, record id uniqueness validation, stable
+URL-hashed RDK doc ids, authoring lint, multi-module artifact checksum
+production, and host-side checksum validation are implemented. Remote hosting,
+release manifest discovery, Rockchip/RK source data, and cryptographic
+signature verification are release/host roadmap items.
 
 ## Repository Layers
 
@@ -93,6 +94,7 @@ knowledge surface:
 - `CommandPattern`
 - `FailureHint`
 - `EndorsedSkillRef`
+- `WorkflowGuide`
 
 `DeviceKnowledgeModuleData` accepts these surfaces as typed arrays and validates
 their required per-record shape in `@device-knowledge/core`. Every record
@@ -126,6 +128,20 @@ promoted.
 
 Roadmap: add repository-level provenance reports that list record counts by
 source, missing source metadata, stale review dates, and changed upstream URLs.
+
+## Workflow Guides
+
+Workflow guides are source-backed task recipes for agent-facing knowledge
+quality. A guide records user trigger phrases, prerequisites, ordered steps,
+verification checks, safety notes, related sources, and the expected outcome.
+This keeps operational guidance structured and testable instead of hiding it
+inside long prompt fragments.
+
+The runtime-agnostic `buildAgentKnowledgeContext` helper exposes workflow
+guides and renders them into compact Markdown for CLIs, MCP servers, eval
+harnesses, and agents. The D-Moss adapter intentionally leaves workflow guides
+out of the Moss `KnowledgeModule` output until Moss has a concrete reader for
+that surface.
 
 ## Bundled And Remote Update Flow
 
@@ -191,5 +207,5 @@ must declare `override=true` before it can override official knowledge.
   are roadmap. Hosts should reject signature fields until verification keys and
   payload rules are configured.
 - The current validation checks top-level module shape, manifest compatibility,
-  typed record shape, source/provenance presence, serialized regex fields, and
-  document chunk policy hints.
+  typed record shape, source/provenance presence, serialized regex fields,
+  workflow guide structure, and document chunk policy hints.

@@ -6,7 +6,8 @@ Device Knowledge is the source repository for data-only device knowledge that ca
 be bundled with RDK Studio, adapted into Moss, and later published as remote
 knowledge packages. The current implementation provides top-level module
 schema, validation, official RDK data plus starter Jetson/Raspberry Pi/Rockchip
-packages, a D-Moss adapter, an authoring lint, and an artifact builder.
+packages, source-backed workflow guides, a D-Moss adapter, an authoring lint,
+and an artifact builder.
 Record-level provenance is now part of the v2 core schema; v1 inputs are still
 accepted through a legacy migration path. Remote update hosting and
 cryptographic signature verification remain host/release responsibilities.
@@ -59,7 +60,8 @@ console.log(context.markdown);
 ```
 
 The returned object includes filtered profiles, source-backed docs, prompt
-fragments, failure hints, endorsed skills, and a compact Markdown rendering.
+fragments, failure hints, endorsed skills, workflow guides, and a compact
+Markdown rendering.
 Moss and RDK Studio should continue to use `@device-knowledge/dmoss-adapter`
 when they need a Moss `KnowledgeModule`; Claude/Codex/Qwen-style tools, MCP
 servers, CLIs, and eval harnesses can use the core context pack directly.
@@ -100,9 +102,13 @@ servers, CLIs, and eval harnesses can use the core context pack directly.
   fields until real public-key verification is configured.
 - A **KnowledgeRecord** is a source-backed fact or host-facing entry. Current
   module arrays include documentation index entries, prompt fragments, command
-  patterns, failure hints, and endorsed skills, all with typed `id`, `source`,
-  optional compatibility scope, status, confidence, review metadata, and
-  citation fields.
+  patterns, failure hints, endorsed skills, and workflow guides, all with typed
+  `id`, `source`, optional compatibility scope, status, confidence, review
+  metadata, and citation fields.
+- A **WorkflowGuide** is a task-shaped record with triggers, prerequisites,
+  ordered steps, verification checks, safety notes, related sources, and an
+  expected outcome. It captures the same kind of operational quality used by
+  curated NVIDIA skills without requiring a host to execute commands.
 - A **Chunk** is a host-facing slice of a record. A standalone
   `KnowledgeChunk` type is roadmap; document records already carry a
   `chunkPolicy` hint for host-side retrieval.
