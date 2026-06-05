@@ -9,13 +9,14 @@
     "packages/*"
   ],
   "scripts": {
-    "verify": "npm run lint:docs && npm run test -w @device-knowledge/core && npm run test -w @device-knowledge/dmoss-adapter && npm run test -w @device-knowledge/rdk-knowledge && npm run test -w @device-knowledge/jetson-knowledge && npm run test -w @device-knowledge/rpi-knowledge && npm run test -w @device-knowledge/rk-knowledge && npm run test:artifact && npm run lint:knowledge",
+    "verify": "npm run lint:docs && npm run test -w @device-knowledge/core && npm run test:adapter && npm run test -w @device-knowledge/rdk-knowledge && npm run test -w @device-knowledge/jetson-knowledge && npm run test -w @device-knowledge/rpi-knowledge && npm run test -w @device-knowledge/rk-knowledge && npm run test:artifact && npm run lint:knowledge",
     "lint:docs": "node scripts/check-docs.mjs",
     "lint:knowledge": "node scripts/lint-knowledge.mjs",
     "build:rdk-artifact": "npm run build -w @device-knowledge/core && npm run build -w @device-knowledge/rdk-knowledge && npm run build -w @device-knowledge/jetson-knowledge && npm run build -w @device-knowledge/rpi-knowledge && npm run build -w @device-knowledge/rk-knowledge && node scripts/build-rdk-artifact.mjs",
     "test:artifact": "node scripts/check-build-artifact-version.mjs",
     "test:core": "npm run test -w @device-knowledge/core",
-    "test:adapter": "npm run test -w @device-knowledge/dmoss-adapter",
+    "test:adapter": "npm run build:dmoss-core && npm run test -w @device-knowledge/dmoss-adapter",
+    "build:dmoss-core": "npm run build --prefix ../moss/packages/dmoss",
     "test:rdk": "npm run test -w @device-knowledge/rdk-knowledge",
     "test:jetson": "npm run test -w @device-knowledge/jetson-knowledge",
     "test:rpi": "npm run test -w @device-knowledge/rpi-knowledge",
