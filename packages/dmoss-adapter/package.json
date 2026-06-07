@@ -14,7 +14,7 @@
   },
   "files": ["dist", "README.md"],
   "scripts": {
-    "prebuild": "npm run build --prefix ../core && npm run build --prefix ../../../moss/packages/dmoss",
+    "prebuild": "npm run build --prefix ../core",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run build && node --test test/*.spec.mjs",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@device-knowledge/core": "0.1.0",
-    "@rdk-moss/core": "file:../../../moss/packages/dmoss"
+    "@rdk-moss/core": "^0.3.8"
   },
   "devDependencies": {
     "typescript": "^5.7.3"

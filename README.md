@@ -154,15 +154,14 @@ npm run verify
 
 1. Documentation lint (required READMEs and local Markdown links).
 2. Core schema/validation tests.
-3. Adapter tests (builds the local Moss core dependency first).
+3. Adapter tests (Moss `KnowledgeModule` conversion via the published `@rdk-moss/core`).
 4. Knowledge-module tests for RDK, Jetson, Raspberry Pi, and Rockchip.
 5. Build-artifact version check.
 6. Knowledge authoring lint.
 
-> The adapter package depends on Moss core via a local path
-> (`file:../../../moss/packages/dmoss`), so adapter tests require the
-> [Moss](https://github.com/QiaolongLi1201/moss) repository checked out alongside
-> this one. The knowledge data packages build and test on their own.
+The adapter pulls Moss core from npm (`@rdk-moss/core`), so the whole
+workspace installs, builds, and tests standalone — no sibling repositories
+required.
 
 ## What Does Not Belong Here
 
