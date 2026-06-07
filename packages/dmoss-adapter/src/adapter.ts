@@ -1,6 +1,6 @@
 import type { DeviceKnowledgeModuleData } from '@device-knowledge/core';
-import type { DeviceFamily } from '@dmoss/core/contracts/device-family';
-import type { KnowledgeModule } from '@dmoss/core/contracts/knowledge-module';
+import type { DeviceFamily } from '@rdk-moss/core/contracts/device-family';
+import type { KnowledgeModule } from '@rdk-moss/core/contracts/knowledge-module';
 
 import { convertDkPriorityToMoss } from './priority-convert.js';
 import {
