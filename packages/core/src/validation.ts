@@ -18,6 +18,9 @@ import {
   type SerializedRegex,
   type ValidationIssue,
   type ValidationResult,
+  type WorkflowGuide,
+  type WorkflowStep,
+  type WorkflowVerification,
   validationFailed,
   validationOk,
 } from './types.js';
@@ -218,6 +221,15 @@ function optionalString(issues: ValidationIssue[], input: Record<string, unknown
   if (typeof value === 'string' && value.trim()) return value;
   issues.push({ path, code: 'invalid-string', message: `${path} must be a non-empty string when provided` });
   return undefined;
+}
+
+function requireStringArray(issues: ValidationIssue[], input: Record<string, unknown>, key: string, path: string): string[] | undefined {
+  const value = input[key];
+  if (!Array.isArray(value) || value.length === 0 || value.some((item) => typeof item !== 'string' || !item.trim())) {
+    issues.push({ path, code: 'invalid-string-array', message: `${path} must be a non-empty array of non-empty strings` });
+    return undefined;
+  }
+  return value;
 }
 
 function inferLegacySource(input: Record<string, unknown>): KnowledgeSourceRef {
@@ -442,6 +454,116 @@ function validateSkillRef(issues: ValidationIssue[], entry: unknown, path: strin
   };
 }
 
+function validateWorkflowStep(issues: ValidationIssue[], entry: unknown, path: string): WorkflowStep | undefined {
+  if (!isRecord(entry)) {
+    issues.push({ path, code: 'invalid-object', message: `${path} must be an object` });
+    return undefined;
+  }
+  const title = requireString(issues, entry, 'title', `${path}.title`);
+  const detail = requireString(issues, entry, 'detail', `${path}.detail`);
+  const command = optionalString(issues, entry, 'command', `${path}.command`);
+  const expected = optionalString(issues, entry, 'expected', `${path}.expected`);
+  const riskLevel = entry.riskLevel;
+  if (riskLevel !== undefined && (typeof riskLevel !== 'string' || !RISK_LEVELS.has(riskLevel as CommandRiskLevel))) {
+    issues.push({ path: `${path}.riskLevel`, code: 'invalid-risk-level', message: `${path}.riskLevel is invalid` });
+  }
+  if (command && riskLevel === undefined) {
+    issues.push({
+      path: `${path}.riskLevel`,
+      code: 'missing-risk-level',
+      message: `${path}.riskLevel is required when command is provided`,
+    });
+  }
+  if (!title || !detail) return undefined;
+  return {
+    title,
+    detail,
+    ...(command ? { command } : {}),
+    ...(typeof riskLevel === 'string' && RISK_LEVELS.has(riskLevel as CommandRiskLevel)
+      ? { riskLevel: riskLevel as CommandRiskLevel }
+      : {}),
+    ...(expected ? { expected } : {}),
+  };
+}
+
+function validateWorkflowVerification(
+  issues: ValidationIssue[],
+  entry: unknown,
+  path: string,
+): WorkflowVerification | undefined {
+  if (!isRecord(entry)) {
+    issues.push({ path, code: 'invalid-object', message: `${path} must be an object` });
+    return undefined;
+  }
+  const title = requireString(issues, entry, 'title', `${path}.title`);
+  const command = optionalString(issues, entry, 'command', `${path}.command`);
+  const expected = requireString(issues, entry, 'expected', `${path}.expected`);
+  if (!title || !expected) return undefined;
+  return {
+    title,
+    ...(command ? { command } : {}),
+    expected,
+  };
+}
+
+function validateNestedArray<T>(
+  issues: ValidationIssue[],
+  input: Record<string, unknown>,
+  key: string,
+  path: string,
+  validator: (issues: ValidationIssue[], entry: unknown, path: string) => T | undefined,
+): T[] | undefined {
+  const value = input[key];
+  if (!Array.isArray(value) || value.length === 0) {
+    issues.push({ path, code: 'invalid-array', message: `${path} must be a non-empty array` });
+    return undefined;
+  }
+  const result: T[] = [];
+  value.forEach((entry, index) => {
+    const validated = validator(issues, entry, `${path}.${index}`);
+    if (validated) result.push(validated);
+  });
+  return result;
+}
+
+function validateWorkflowGuide(issues: ValidationIssue[], entry: unknown, path: string): WorkflowGuide | undefined {
+  if (!isRecord(entry)) {
+    issues.push({ path, code: 'invalid-object', message: `${path} must be an object` });
+    return undefined;
+  }
+  const base = validateRecordBase(issues, entry, path);
+  const title = requireString(issues, entry, 'title', `${path}.title`);
+  const category = requireString(issues, entry, 'category', `${path}.category`);
+  const triggers = requireStringArray(issues, entry, 'triggers', `${path}.triggers`);
+  const prerequisites = optionalStringArray(issues, entry, 'prerequisites', `${path}.prerequisites`);
+  const steps = validateNestedArray(issues, entry, 'steps', `${path}.steps`, validateWorkflowStep);
+  const verification = validateNestedArray(
+    issues,
+    entry,
+    'verification',
+    `${path}.verification`,
+    validateWorkflowVerification,
+  );
+  const safetyNotes = optionalStringArray(issues, entry, 'safetyNotes', `${path}.safetyNotes`);
+  const expectedOutcome = requireString(issues, entry, 'expectedOutcome', `${path}.expectedOutcome`);
+  const relatedDocIds = optionalStringArray(issues, entry, 'relatedDocIds', `${path}.relatedDocIds`);
+  const relatedUrls = optionalStringArray(issues, entry, 'relatedUrls', `${path}.relatedUrls`);
+  if (!base || !title || !category || !triggers || !steps || !verification || !expectedOutcome) return undefined;
+  return {
+    ...base,
+    title,
+    category,
+    triggers,
+    ...(prerequisites ? { prerequisites } : {}),
+    steps,
+    verification,
+    ...(safetyNotes ? { safetyNotes } : {}),
+    expectedOutcome,
+    ...(relatedDocIds ? { relatedDocIds } : {}),
+    ...(relatedUrls ? { relatedUrls } : {}),
+  };
+}
+
 function validateRecordArray<T>(
   issues: ValidationIssue[],
   input: Record<string, unknown>,
@@ -526,12 +648,14 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
   const commandPatterns = validateRecordArray(issues, input, 'commandPatterns', legacy(validateCommandPattern));
   const failureHints = validateRecordArray(issues, input, 'failureHints', legacy(validateFailureHint));
   const skills = validateRecordArray(issues, input, 'skills', legacy(validateSkillRef));
+  const workflowGuides = validateRecordArray(issues, input, 'workflowGuides', legacy(validateWorkflowGuide));
   validateUniqueRecordIds(issues, [
     { key: 'docs', records: docs },
     { key: 'promptFragments', records: promptFragments },
     { key: 'commandPatterns', records: commandPatterns },
     { key: 'failureHints', records: failureHints },
     { key: 'skills', records: skills },
+    { key: 'workflowGuides', records: workflowGuides },
   ]);
   if (input.ecosystemText !== undefined) {
     if (typeof input.ecosystemText !== 'string') {
@@ -560,6 +684,7 @@ export function validateDeviceKnowledgeModule(input: unknown): ValidationResult<
     commandPatterns: commandPatterns?.map(({ record }) => record),
     failureHints: failureHints?.map(({ record }) => record),
     skills: skills?.map(({ record }) => record),
+    workflowGuides: workflowGuides?.map(({ record }) => record),
     ecosystemText: input.ecosystemText as string | undefined,
   });
 }

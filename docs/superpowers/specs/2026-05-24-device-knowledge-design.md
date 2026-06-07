@@ -83,7 +83,7 @@ existing import paths must keep working.
 
 Converts data-first modules into the D-Moss `KnowledgeModule` contract. This is
 the only package that should know how public device knowledge maps into
-`@dmoss/core` knowledge contracts.
+`@rdk-moss/core` knowledge contracts.
 
 ### `packages/mcp-server`
 

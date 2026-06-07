@@ -11,8 +11,10 @@ flows, or UI state.
 
 - `DeviceKnowledgeModuleManifest`
 - `SerializedRegex`
+- `WorkflowGuide`
 - `validateManifest`
 - `validateDeviceKnowledgeModule`
+- `buildAgentKnowledgeContext`
 - `compileSerializedRegex`
 - `serializedRegexFromLegacyRobotHubPattern`
 - `resolveModuleConflict`

@@ -7,6 +7,7 @@ import type {
   KnowledgeCompatibilityScope,
   KnowledgeRecordBase,
   PromptFragment,
+  WorkflowGuide,
 } from './types.js';
 
 export interface AgentKnowledgeContextOptions {
@@ -53,6 +54,7 @@ export interface AgentKnowledgeContext {
   commandPatterns: CommandPattern[];
   failureHints: FailureHint[];
   skills: EndorsedSkillRef[];
+  workflowGuides: WorkflowGuide[];
   markdown: string;
 }
 
@@ -75,6 +77,11 @@ function recordMatches(record: KnowledgeRecordBase, options: AgentKnowledgeConte
 function sectionMatches(record: { section?: string }, sections: Set<string> | undefined): boolean {
   if (!sections || !record.section) return true;
   return sections.has(record.section.trim().toLowerCase());
+}
+
+function categoryMatches(record: { category?: string }, sections: Set<string> | undefined): boolean {
+  if (!sections || !record.category) return true;
+  return sections.has(record.category.trim().toLowerCase());
 }
 
 function selectProfiles(
@@ -155,6 +162,37 @@ function renderAgentKnowledgeMarkdown(context: Omit<AgentKnowledgeContext, 'mark
     }
   }
 
+  if (context.workflowGuides.length > 0) {
+    lines.push('', '## Workflow Guides');
+    for (const guide of context.workflowGuides) {
+      lines.push('', `### ${guide.title}`);
+      lines.push(`- Category: ${guide.category}`);
+      lines.push(`- Triggers: ${guide.triggers.join(', ')}`);
+      if (guide.prerequisites?.length) {
+        lines.push(`- Prerequisites: ${guide.prerequisites.join('; ')}`);
+      }
+      lines.push('- Steps:');
+      guide.steps.forEach((step, index) => {
+        const command = step.command ? ` Command: \`${step.command}\`.` : '';
+        const expected = step.expected ? ` Expected: ${step.expected}` : '';
+        const risk = step.riskLevel ? ` [${step.riskLevel}]` : '';
+        lines.push(`  ${index + 1}. ${step.title}${risk}: ${step.detail}${command}${expected}`);
+      });
+      lines.push('- Verification:');
+      for (const check of guide.verification) {
+        const command = check.command ? ` Command: \`${check.command}\`.` : '';
+        lines.push(`  - ${check.title}:${command} Expected: ${check.expected}`);
+      }
+      if (guide.safetyNotes?.length) {
+        lines.push(`- Safety: ${guide.safetyNotes.join('; ')}`);
+      }
+      lines.push(`- Expected outcome: ${guide.expectedOutcome}`);
+      if (guide.relatedUrls?.length) {
+        lines.push(`- Related sources: ${guide.relatedUrls.join(', ')}`);
+      }
+    }
+  }
+
   return `${lines.join('\n')}\n`;
 }
 
@@ -181,6 +219,9 @@ export function buildAgentKnowledgeContext(
   const commandPatterns = (data.commandPatterns ?? []).filter((record) => recordMatches(record, options));
   const failureHints = (data.failureHints ?? []).filter((record) => recordMatches(record, options));
   const skills = (data.skills ?? []).filter((record) => recordMatches(record, options));
+  const workflowGuides = (data.workflowGuides ?? [])
+    .filter((record) => recordMatches(record, options))
+    .filter((record) => categoryMatches(record, sections));
 
   const contextBase: Omit<AgentKnowledgeContext, 'markdown'> = {
     module: {
@@ -199,6 +240,7 @@ export function buildAgentKnowledgeContext(
     commandPatterns,
     failureHints,
     skills,
+    workflowGuides,
   };
 
   return {

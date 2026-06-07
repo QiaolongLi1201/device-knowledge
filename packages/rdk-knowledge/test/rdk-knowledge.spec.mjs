@@ -14,7 +14,7 @@ test('rdkKnowledgeModuleData validates through core schema', () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.value.manifest.id, 'rdk');
-  assert.equal(result.value.manifest.version, '0.1.4');
+  assert.equal(result.value.manifest.version, '0.1.5');
   assert.equal(result.value.manifest.family, 'rdk');
 });
 
@@ -29,7 +29,7 @@ test('full RDK data adapts to Moss KnowledgeModule', () => {
 
   assert.equal(module.id, 'rdk');
   assert.equal(module.name, 'RDK Development Kit');
-  assert.equal(module.version, '0.1.4');
+  assert.equal(module.version, '0.1.5');
   assert.equal(module.family, 'rdk');
   assert.deepEqual(module.platforms.sort(), ['rdk-s100', 'rdk-s100p', 'rdk-ultra', 'rdk-x3', 'rdk-x5']);
   assert.equal(module.platformClaimPriority, 999);
@@ -55,6 +55,24 @@ test('full RDK data adapts to Moss KnowledgeModule', () => {
   assert.ok(
     rdkKnowledgeModuleData.docs?.some(
       (entry) => entry.title.includes('S100/S100P') && entry.scope?.platforms?.includes('rdk-s100p'),
+    ),
+  );
+  assert.ok(rdkKnowledgeModuleData.workflowGuides?.length >= 5);
+  assert.ok(
+    rdkKnowledgeModuleData.workflowGuides?.some(
+      (entry) =>
+        entry.id === 'rdk-workflow-bpu-model-deployment' &&
+        entry.verification.some((check) => check.command?.includes('hb_eval_perf')),
+    ),
+  );
+  assert.ok(
+    rdkKnowledgeModuleData.workflowGuides?.every(
+      (entry) =>
+        entry.source.type !== 'generated' &&
+        entry.triggers.length > 0 &&
+        entry.steps.length > 0 &&
+        entry.verification.length > 0 &&
+        entry.safetyNotes?.length,
     ),
   );
 });

@@ -176,6 +176,43 @@ test('validateDeviceKnowledgeModule accepts serializable data arrays', () => {
         source: { type: 'generated', repo: 'device-knowledge' },
       },
     ],
+    workflowGuides: [
+      {
+        id: 'rdk-workflow-camera-smoke',
+        title: 'Camera smoke test',
+        category: 'vision',
+        triggers: ['camera not working', 'usb camera'],
+        prerequisites: ['Device shell access is available.'],
+        steps: [
+          {
+            title: 'List video devices',
+            detail: 'Confirm the kernel exposed at least one video device.',
+            command: 'ls /dev/video*',
+            riskLevel: 'safe',
+            expected: 'At least one /dev/videoN path is listed.',
+          },
+        ],
+        verification: [
+          {
+            title: 'Confirm formats',
+            command: 'v4l2-ctl -d /dev/video0 --list-formats-ext',
+            expected: 'The target resolution and pixel format are present.',
+          },
+        ],
+        safetyNotes: ['Use read-only probing commands before changing launch parameters.'],
+        expectedOutcome: 'The assistant can route the user to the next camera setup step with source-backed evidence.',
+        relatedUrls: ['https://developer.d-robotics.cc/rdk_doc/Basic_Application/vision/usb_camera'],
+        source: {
+          type: 'official-doc',
+          url: 'https://developer.d-robotics.cc/rdk_doc/Basic_Application/vision/usb_camera',
+          retrievedAt: '2026-06-04',
+        },
+        status: 'active',
+        confidence: 'high',
+        lastReviewedAt: '2026-06-04',
+        citationLabel: 'RDK USB camera workflow',
+      },
+    ],
     ecosystemText: 'offline ecosystem prompt',
   });
 
@@ -183,7 +220,46 @@ test('validateDeviceKnowledgeModule accepts serializable data arrays', () => {
   assert.equal(result.value.docs[0].source.type, 'official-doc');
   assert.deepEqual(result.value.docs[0].scope.platforms, ['rdk-x5']);
   assert.equal(result.value.commandPatterns[0].pattern.source, 'cat\\s+/sys/class/socinfo');
+  assert.equal(result.value.workflowGuides[0].verification[0].title, 'Confirm formats');
   assert.equal(result.value.ecosystemText, 'offline ecosystem prompt');
+});
+
+test('validateDeviceKnowledgeModule rejects workflow guides without verification', () => {
+  const result = validateDeviceKnowledgeModule({
+    manifest: {
+      schemaVersion: DEVICE_KNOWLEDGE_MODULE_SCHEMA_VERSION,
+      id: 'rdk',
+      name: 'RDK Development Kit',
+      version: '0.1.0',
+      origin: 'official',
+      priority: 0,
+      compatibility: {
+        dmossKnowledgeModule: '^0.3.1',
+      },
+    },
+    workflowGuides: [
+      {
+        id: 'rdk-workflow-incomplete',
+        title: 'Incomplete workflow',
+        category: 'diagnostics',
+        triggers: ['diagnose'],
+        steps: [
+          {
+            title: 'Read board id',
+            detail: 'Read a board identifier.',
+          },
+        ],
+        expectedOutcome: 'The board is identified.',
+        source: {
+          type: 'official-doc',
+          url: 'https://developer.d-robotics.cc/rdk_doc/Quick_start/hardware_introduction/rdk_x5',
+        },
+      },
+    ],
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.issues.some((issue) => issue.path === 'workflowGuides.0.verification'), true);
 });
 
 test('validateDeviceKnowledgeModule rejects records without provenance', () => {

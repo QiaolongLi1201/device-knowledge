@@ -107,6 +107,48 @@ const moduleData = {
       status: 'deprecated',
     },
   ],
+  workflowGuides: [
+    {
+      id: 'workflow-camera-x5',
+      title: 'Camera smoke test',
+      category: 'vision',
+      triggers: ['camera not working', 'usb camera'],
+      prerequisites: ['Device shell access is available.'],
+      steps: [
+        {
+          title: 'List video devices',
+          detail: 'Confirm the kernel exposed at least one video device.',
+          command: 'ls /dev/video*',
+          riskLevel: 'safe',
+          expected: 'At least one /dev/videoN path is listed.',
+        },
+      ],
+      verification: [
+        {
+          title: 'Confirm formats',
+          command: 'v4l2-ctl -d /dev/video0 --list-formats-ext',
+          expected: 'The target format is present.',
+        },
+      ],
+      safetyNotes: ['Use read-only probing commands before changing launch parameters.'],
+      expectedOutcome: 'The assistant can route the user to the next camera setup step.',
+      source: baseSource,
+      status: 'active',
+      scope: { platforms: ['rdk-x5'] },
+    },
+    {
+      id: 'workflow-s100p',
+      title: 'S100P workflow',
+      category: 'diagnostics',
+      triggers: ['s100p'],
+      steps: [{ title: 'Read board id', detail: 'Read the board id.' }],
+      verification: [{ title: 'Board identified', expected: 'The platform is rdk-s100p.' }],
+      expectedOutcome: 'The S100P board is identified.',
+      source: baseSource,
+      status: 'active',
+      scope: { platforms: ['rdk-s100p'] },
+    },
+  ],
 };
 
 test('buildAgentKnowledgeContext filters profiles and scoped records for one platform', () => {
@@ -116,10 +158,15 @@ test('buildAgentKnowledgeContext filters profiles and scoped records for one pla
   assert.deepEqual(context.docs.map((doc) => doc.id), ['doc-x5']);
   assert.deepEqual(context.promptFragments.map((fragment) => fragment.id), ['prompt-high', 'prompt-low']);
   assert.deepEqual(context.commandPatterns.map((command) => command.id), ['command-sudo']);
+  assert.deepEqual(context.workflowGuides.map((guide) => guide.id), ['workflow-camera-x5']);
   assert.match(context.markdown, /RDK X5/);
   assert.match(context.markdown, /X5 official/);
   assert.match(context.markdown, /APT commands may modify/);
+  assert.match(context.markdown, /## Workflow Guides/);
+  assert.match(context.markdown, /Camera smoke test/);
+  assert.match(context.markdown, /v4l2-ctl -d \/dev\/video0 --list-formats-ext/);
   assert.doesNotMatch(context.markdown, /S100P setup/);
+  assert.doesNotMatch(context.markdown, /S100P workflow/);
   assert.doesNotMatch(context.markdown, /Draft/);
   assert.doesNotMatch(context.markdown, /Deprecated/);
 });
@@ -136,6 +183,7 @@ test('buildAgentKnowledgeContext returns no profile for unknown concrete platfor
 
   assert.deepEqual(Object.keys(context.profiles), []);
   assert.deepEqual(context.docs, []);
+  assert.deepEqual(context.workflowGuides, []);
 });
 
 test('buildAgentKnowledgeContext can include drafts and limit docs for neutral agents', () => {

@@ -1,10 +1,10 @@
 {
-  "name": "@device-knowledge/dmoss-adapter",
+  "name": "@device-knowledge/host-software-knowledge",
   "version": "0.1.0",
   "private": false,
   "type": "module",
   "license": "MIT",
-  "description": "Adapter that converts device-knowledge modules into the D-Moss KnowledgeModule contract.",
+  "description": "Data-first host software knowledge module for desktop and frontend engineering.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,19 +14,18 @@
   },
   "files": ["dist", "README.md"],
   "scripts": {
-    "prebuild": "npm run build --prefix ../core && npm run build --prefix ../../../moss/packages/dmoss",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "npm run build && node --test test/*.spec.mjs",
     "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@device-knowledge/core": "0.1.0",
-    "@rdk-moss/core": "file:../../../moss/packages/dmoss"
+    "@device-knowledge/core": "0.1.0"
   },
   "devDependencies": {
+    "@device-knowledge/dmoss-adapter": "0.1.0",
     "typescript": "^5.7.3"
   },
   "engines": { "node": ">=22.16.0" },
-  "keywords": ["device-knowledge", "dmoss", "adapter", "knowledge-module", "robotics"]
+  "keywords": ["device-knowledge", "host-software", "desktop", "frontend", "electron", "react"]
 }

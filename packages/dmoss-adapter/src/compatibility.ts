@@ -8,12 +8,12 @@ import type {
   FailureHint,
   KnowledgeRecordMetadata,
   PromptFragment,
-} from '@dmoss/core/contracts/knowledge-module';
+} from '@rdk-moss/core/contracts/knowledge-module';
 
 export type {
   CommandPattern, DeviceProfileBase, DocIndexEntry, EndorsedSkillRef,
   FailureHint, KnowledgeModule, KnowledgeRecordMetadata, PromptFragment,
-} from '@dmoss/core/contracts/knowledge-module';
+} from '@rdk-moss/core/contracts/knowledge-module';
 
 function metadataFrom(raw: Record<string, unknown>, extra: Partial<KnowledgeRecordMetadata> = {}): KnowledgeRecordMetadata | undefined {
   if (typeof raw.id !== 'string') return undefined;

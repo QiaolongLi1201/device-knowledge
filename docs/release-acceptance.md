@@ -32,7 +32,7 @@ and Raspberry Pi modules.
      SoCs, RDK versions, OS versions, or toolchains
 3. Run repository verification. This includes docs lint, package tests, and
    `lint:knowledge` checks for duplicate ids, provenance, citations, dates,
-   document URLs, and chunk policies:
+   document URLs, chunk policies, and workflow guide completeness:
 
    ```bash
    npm run verify
@@ -121,7 +121,7 @@ Repository acceptance:
   migration path and should not be emitted by new releases.
 - Official module priorities stay in the `0` to `99` range.
 - Record ids are unique across docs, prompt fragments, command patterns,
-  failure hints, and endorsed skills.
+  failure hints, endorsed skills, and workflow guides.
 - Changed knowledge records have source/provenance recorded in typed fields.
 - The artifact contains checksum metadata for the payload and module content.
 - New roadmap text is clearly marked as roadmap and does not imply existing
@@ -134,7 +134,7 @@ RDK Studio acceptance:
   `@device-knowledge/dmoss-adapter`.
 - Existing RDK knowledge workflows still work for device profiles,
   documentation index lookup, prompt fragments, command patterns, failure
-  hints, endorsed skills, and ecosystem prompt text.
+  hints, endorsed skills, workflow guides, and ecosystem prompt text.
 - Jetson and Raspberry Pi starter modules load and provide scoped device
   profiles, documentation index entries, prompt fragments, and ecosystem
   prompt text. Command patterns, failure hints, and endorsed skills are added
