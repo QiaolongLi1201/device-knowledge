@@ -3,7 +3,7 @@
 Open, source-backed device knowledge packages for robotics agents.
 
 Device Knowledge is the source repository for data-only device knowledge that can
-be bundled with RDK Studio, adapted into [Moss](https://github.com/QiaolongLi1201/moss),
+be bundled with RDK Studio, adapted into [Moss](https://github.com/D-Robotics/moss),
 and later published as remote knowledge packages. It ships a top-level module
 schema with validation, official D-Robotics RDK data plus starter
 Jetson/Raspberry Pi/Rockchip packages, a host/desktop software knowledge package,
@@ -21,7 +21,7 @@ contracts, not agent execution:
 
 - The knowledge packages export serializable data only — no credentials, SSH
   sessions, device access, or product UI.
-- Agent runtimes consume that data. [Moss](https://github.com/QiaolongLi1201/moss)
+- Agent runtimes consume that data. [Moss](https://github.com/D-Robotics/moss)
   consumes it as a `KnowledgeModule` through `@device-knowledge/dmoss-adapter`;
   other agents, MCP servers, CLIs, and eval harnesses can consume the same data
   through the core context-pack helper.
