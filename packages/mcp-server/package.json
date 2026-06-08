@@ -1,0 +1,42 @@
+{
+  "name": "@device-knowledge/mcp-server",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Read-only MCP server that exposes device-knowledge modules to agents (Claude Code, Codex, and other MCP clients).",
+  "bin": {
+    "device-knowledge-mcp": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "prebuild": "npm run build --prefix ../core && npm run build --prefix ../rdk-knowledge && npm run build --prefix ../jetson-knowledge && npm run build --prefix ../rpi-knowledge && npm run build --prefix ../rk-knowledge && npm run build --prefix ../host-software-knowledge",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "start": "node dist/index.js",
+    "test": "npm run build && node --test test/*.spec.mjs",
+    "clean": "node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@device-knowledge/core": "0.1.0",
+    "@device-knowledge/host-software-knowledge": "0.1.0",
+    "@device-knowledge/jetson-knowledge": "0.1.0",
+    "@device-knowledge/rdk-knowledge": "0.1.0",
+    "@device-knowledge/rk-knowledge": "0.1.0",
+    "@device-knowledge/rpi-knowledge": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "engines": { "node": ">=22.16.0" },
+  "keywords": ["device-knowledge", "mcp", "model-context-protocol", "agent", "robotics", "rdk"]
+}
