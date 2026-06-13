@@ -1,188 +1,85 @@
-# Device Knowledge
+# RDK 设备知识 Skills
 
-Open, source-backed device knowledge packages for robotics agents.
+D-Robotics RDK 及周边设备(Jetson / 树莓派 / Rockchip)的 **source-backed 知识**,按
+[Claude 官方 skill 格式](https://github.com/anthropics/skills)组织。本仓库是数据为主、运行时中立的知识来源,
+可被任意支持 skill 的 agent 宿主直接扫描 `skills/**` 加载——无需再经过 TS 数据包、适配层或构建产物。
 
-Device Knowledge is the source repository for data-only device knowledge that can
-be bundled with RDK Studio, adapted into [Moss](https://github.com/D-Robotics/moss),
-and later published as remote knowledge packages. It ships a top-level module
-schema with validation, official D-Robotics RDK data plus starter
-Jetson/Raspberry Pi/Rockchip packages, a host/desktop software knowledge package,
-source-backed workflow guides, a Moss adapter, an authoring lint, and a versioned
-artifact builder.
+## 为什么是 skill
 
-Record-level provenance is part of the v2 core schema; v1 inputs are still
-accepted through a legacy migration path. Remote update hosting and cryptographic
-signature verification remain host/release responsibilities.
+每个 skill 就是一个 `skills/<name>/SKILL.md`:YAML frontmatter 只需 `name` + `description`,正文是 markdown 指令,
+详细查表放 `references/`。这一极简格式:
 
-## Positioning
+- **通用**:Claude Code、Moss、RDK Studio 以及任何按目录扫描 skill 的宿主都能直接消费。
+- **兼容 Moss**:Moss 的 `mergeSkillFrontmatterDefaults` 会为"仅含 name/description 的外部 skill"自动补齐运行时必填字段,
+  因此本仓库的极简 skill 导入 Moss/RDK Studio 时天然可用。
+- **可发现**:`description` 描述"何时触发",宿主据此按需加载对应知识,正文保持精简、加载轻。
 
-Device Knowledge is intentionally **runtime-neutral**. It carries data and
-contracts, not agent execution:
+## Skill 清单
 
-- The knowledge packages export serializable data only — no credentials, SSH
-  sessions, device access, or product UI.
-- Agent runtimes consume that data. [Moss](https://github.com/D-Robotics/moss)
-  consumes it as a `KnowledgeModule` through `@device-knowledge/dmoss-adapter`;
-  other agents, MCP servers, CLIs, and eval harnesses can consume the same data
-  through the core context-pack helper.
-- RDK Studio bundles a built artifact and consumes newer compatible knowledge
-  releases without changing the user experience.
-
-## Repository Scope
-
-This repository contains the parts of device knowledge that can be maintained
-independently from any product shell.
-
-| Package | Role |
+| Skill | 何时触发 |
 | --- | --- |
-| `@device-knowledge/core` | Module schema, validation, provenance types, and the runtime-neutral agent context-pack helper |
-| `@device-knowledge/rdk-knowledge` | Official D-Robotics RDK device knowledge module data |
-| `@device-knowledge/jetson-knowledge` | NVIDIA Jetson starter knowledge module data |
-| `@device-knowledge/rpi-knowledge` | Raspberry Pi starter knowledge module data |
-| `@device-knowledge/rk-knowledge` | Rockchip RK starter knowledge module data |
-| `@device-knowledge/host-software-knowledge` | Host/desktop and frontend software-engineering knowledge module data |
-| `@device-knowledge/dmoss-adapter` | Adapter that converts modules into the Moss `KnowledgeModule` contract (`@rdk-moss/core`) |
-| `packages/mcp-server` | Placeholder for a planned standalone read-only MCP server (resources, tools, prompts) |
+| [`rdk-ecosystem`](skills/rdk-ecosystem/) | RDK 生态、产品选型(买哪块板)、能否跑某模型、与 Jetson/树莓派/RK3588 跨平台对比、LLM/VLM 期待、官方资料来源 |
+| [`rdk-hardware`](skills/rdk-hardware/) | RDK 硬件子系统与系统底座:40PIN GPIO、摄像头、BPU 推理流水线、系统路径、网络、散热、BPU 架构演进、OS 版本线、板型感知 |
+| [`rdk-board-knowledge`](skills/rdk-board-knowledge/) | 板型基线确认、常见报错诊断、高频误区纠正(附 55 条故障速查与诊断命令库) |
+| [`rdk-device`](skills/rdk-device/) | 模型部署闭环(.pt/.onnx→.bin BPU 工具链)、首次开箱联网、摄像头/视觉推理、从 0 到 1 上手 |
+| [`rdk-ros`](skills/rdk-ros/) | TROS/ROS2 环境初始化、ros2 命令、节点排障、包定位、双目深度/Livox 感知节点 |
+| [`rdk-peripheral-cookbook`](skills/rdk-peripheral-cookbook/) | 外设驱动食谱:GPIO/I2C/SPI/UART、PWM 舵机、电机、LED/WS2812、音频(ALSA)、跨平台引脚、libgpiod、零驱动诊断 |
+| [`rdk-board-delegate`](skills/rdk-board-delegate/) | 板端委派、OpenClaw 交接信息结构、S100"大小脑异构"(MCU R52+ 实时控制)协同 |
+| [`jetson-knowledge`](skills/jetson-knowledge/) | NVIDIA Jetson(Orin 系列)生态、选型、JetPack/TensorRT 工具链 |
+| [`rpi-knowledge`](skills/rpi-knowledge/) | 树莓派(Pi 5/4B/CM4)生态、GPIO、libcamera、AI HAT+ |
+| [`rk-knowledge`](skills/rk-knowledge/) | Rockchip RK3588(Rock5 / OrangePi 5)NPU、RKNN 工具链部署 |
+| [`host-software-dev`](skills/host-software-dev/) | RDK Studio 桌面客户端本体开发(Electron/React/Vite/Node/TS、打包、IPC、HMR),区别于板端设备操作 |
 
-Plus `modules/` (data-first module bundles and examples) and `docs/`
-(architecture and release-acceptance notes).
+## 目录结构
 
-## Consuming The Knowledge
-
-There are two supported consumption paths and they share the same source data.
-
-**Moss `KnowledgeModule`** — for the Moss runtime and RDK Studio, use the adapter
-to convert a data module into the Moss contract from `@rdk-moss/core`:
-
-```ts
-import { toKnowledgeModule } from '@device-knowledge/dmoss-adapter';
-import { rdkKnowledgeModuleData } from '@device-knowledge/rdk-knowledge';
-
-const module = toKnowledgeModule(rdkKnowledgeModuleData);
+```text
+device-knowledge/
+├── skills/
+│   └── <skill-name>/
+│       ├── SKILL.md            # frontmatter(name + description) + 正文指令
+│       └── references/*.md     # 详细查表:命令、故障速查、规格、硬件章节
+├── scripts/validate-skills.mjs # 校验 frontmatter 与 references 链接
+├── docs/architecture.md        # 仓库架构说明
+├── LICENSE
+└── README.md
 ```
 
-**Runtime-neutral context pack** — for agents that need the same trusted data
-without linking against Moss runtime types, `@device-knowledge/core` exposes a
-context-pack helper:
+## 如何使用
 
-```ts
-import { buildAgentKnowledgeContext } from '@device-knowledge/core';
-import { rdkKnowledgeModuleData } from '@device-knowledge/rdk-knowledge';
+- **Claude Code**:把需要的 skill 目录放进 skill 搜索路径(如复制到 `~/.claude/skills/` 或项目的 `.claude/skills/`)。
+- **Moss / RDK Studio**:宿主从 `<workspace>/skills/**` 扫描;skill 目录名即 skill id,与 frontmatter `name` 一致。
 
-const context = buildAgentKnowledgeContext(rdkKnowledgeModuleData, {
-  platform: 'rdk-x5',
-  maxDocs: 8,
-});
+## 内容与出处
 
-console.log(context.markdown);
-```
+所有内容 **source-backed**,忠实转换自原 device-knowledge 知识库,**未改写技术事实**:
 
-The returned object includes filtered profiles, source-backed docs, prompt
-fragments, failure hints, endorsed skills, workflow guides, and a compact
-Markdown rendering. Claude/Codex/Qwen-style tools, MCP servers, CLIs, and eval
-harnesses can use this path directly.
+- 每个 `SKILL.md` 正文开头有 `> 来源:` 声明。
+- `references/` 中的命令、故障、文档逐条保留官方出处链接(`developer.d-robotics.cc/rdk_doc`、D-Robotics GitHub 等)。
+- 优先官方 D-Robotics 文档、工具链、Model Zoo / NodeHub;社区/经验性内容如实标注。
 
-## Build RDK Artifact
-
-RDK Studio consumes data-only artifacts from this repo. After editing knowledge
-data in `packages/*-knowledge/src/**`, verify the workspace and build a versioned
-multi-module artifact:
+## 校验
 
 ```bash
-npm run verify
-npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
+node scripts/validate-skills.mjs
 ```
 
-The output is `dist/artifacts/rdk-device-knowledge.artifact.json`. It contains
-the official RDK module plus starter Jetson, Raspberry Pi, and Rockchip modules.
-Publish that JSON for remote updates, or sync it into RDK Studio's bundled
-baseline before a desktop release.
+校验每个 `SKILL.md` 的 frontmatter 含 `name`(与目录名一致)+ `description`,且正文引用的 `references/` 文件真实存在。
 
-The build script also accepts `--out <path>`. If `--version` is omitted, it uses
-`DEVICE_KNOWLEDGE_VERSION` or falls back to the RDK module manifest version. If
-`--min-rdk-studio` is omitted, it can be supplied through `MIN_RDK_STUDIO_VERSION`.
+## 推荐搭配的官方 Claude Skill
 
-## Trusted Knowledge Concepts
+以下 [anthropics/skills](https://github.com/anthropics/skills) 的官方 skill 对 RDK 开发有互补价值。
+为保持本仓库聚焦于设备知识,**不内置**它们,按需在你的 skill 环境中引入即可:
 
-- A **Trusted Knowledge Package** is the release unit consumed by hosts. Today it
-  is the `rdk-device-knowledge.artifact.v1` JSON artifact built from
-  `@device-knowledge/*-knowledge`. The artifact contains checksum metadata for
-  the payload and each module; hosts must reject unsupported signature fields
-  until real public-key verification is configured.
-- A **KnowledgeRecord** is a source-backed fact or host-facing entry. Module
-  arrays include documentation index entries, prompt fragments, command patterns,
-  failure hints, endorsed skills, and workflow guides, all with typed `id`,
-  `source`, optional compatibility scope, status, confidence, review metadata, and
-  citation fields.
-- A **WorkflowGuide** is a task-shaped record with triggers, prerequisites,
-  ordered steps, verification checks, safety notes, related sources, and an
-  expected outcome — operational quality without requiring a host to execute
-  commands.
-- A **Chunk** is a host-facing slice of a record. A standalone `KnowledgeChunk`
-  type is roadmap; document records already carry a `chunkPolicy` hint for
-  host-side retrieval.
-- **Source/provenance** includes source type, URL or repository, commit, document
-  version, and retrieval time when available.
-- **Bundled knowledge** is the offline baseline shipped with RDK Studio. **Remote
-  knowledge updates** use the same artifact shape plus host-side fetch,
-  verification, cache, and rollback policy in RDK Studio.
+- **`skill-creator`** — 持续创建/维护本仓库的 RDK skill。
+- **`frontend-design`、`webapp-testing`** — 开发与验证 RDK Studio 桌面端 UI。
+- **`mcp-builder`** — 若要为 RDK 设备知识构建只读 MCP server。
 
-## Goals
+## 新增或修改 skill
 
-- Maintain RDK and future device knowledge in a public, standalone repository.
-- Publish reusable knowledge packages that do not depend on RDK Studio runtime
-  state, credentials, SSH sessions, or UI code.
-- Carry source/provenance metadata so records can be reviewed, cited, and
-  accepted as trusted knowledge.
-- Provide a read-only MCP server so agents can read device profiles,
-  documentation indexes, failure hints, and prompt context on demand (planned;
-  see `packages/mcp-server`).
-- Keep Moss integration as an adapter layer, not as the primary knowledge format.
-- Support hot-pluggable community or user modules through a stable module schema
-  and priority rules.
-
-## Development
-
-Use Node 22.16 or newer for this workspace.
-
-```bash
-npm install
-npm run verify
-```
-
-`npm run verify` runs:
-
-1. Documentation lint (required READMEs and local Markdown links).
-2. Core schema/validation tests.
-3. Adapter tests (Moss `KnowledgeModule` conversion via the published `@rdk-moss/core`).
-4. Knowledge-module tests for RDK, Jetson, Raspberry Pi, and Rockchip.
-5. Build-artifact version check.
-6. Knowledge authoring lint.
-
-The adapter pulls Moss core from npm (`@rdk-moss/core`), so the whole
-workspace installs, builds, and tests standalone — no sibling repositories
-required.
-
-## What Does Not Belong Here
-
-Keep runtime and product concerns out of this repository. Do not add:
-
-- Device mutation, SSH execution, flashing, or credential handling.
-- Model keys, device passwords, SSH credentials, or user account details.
-- RDK Studio `server/**` internals, native-shell code, or product UI state.
-- Agent execution loops — knowledge packages export data and contracts only.
-- Built `dist/` directories as tracked source.
-
-Device mutation, SSH execution, flashing, and credential handling are out of
-scope for this repository.
-
-## Documentation
-
-- [`docs/architecture.md`](docs/architecture.md): trusted knowledge package
-  target architecture and current boundaries.
-- [`docs/release-acceptance.md`](docs/release-acceptance.md): RDK Studio release
-  update steps, remote publishing expectations, rollback behavior, and acceptance
-  criteria.
+1. 在 `skills/<name>/` 下建 `SKILL.md`,frontmatter 写 `name`(= 目录名)与精准的 `description`(描述何时触发,避免与既有 skill 抢触发)。
+2. 详细查表/长内容放 `references/*.md`,在正文中链接。
+3. 标注来源,保持技术事实可追溯。
+4. 运行 `node scripts/validate-skills.mjs` 确认通过。
 
 ## License
 

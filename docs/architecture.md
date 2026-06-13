@@ -1,211 +1,67 @@
-# Architecture
+# 架构
 
-Device Knowledge is evolving from a data package into a trusted knowledge
-package system. The repository remains read-only knowledge infrastructure:
-device mutation, SSH execution, flashing, credentials, external messaging, and
-host UI state stay in RDK Studio or other product hosts.
+本仓库是 **RDK 设备知识的纯 skill 集**。它只承载数据(知识),不含 agent 执行逻辑:
+设备变更、SSH 执行、刷机、凭据、外部消息、宿主 UI 状态都留在 RDK Studio 或其他产品宿主。
 
-## Target Shape
+此前 device-knowledge 是"TS 数据包 + 适配/构建程序"(core schema、dmoss-adapter、artifact builder、lint)。
+现已整体改写为 [Claude 官方 skill 格式](https://github.com/anthropics/skills),消费方直接扫描 `skills/**` 加载,
+不再需要中间的数据契约程序。
+
+## 设计原则
+
+- **Source-backed 且忠实**:所有内容由原 device-knowledge 知识数据**忠实转换**,未改写技术事实;逐条保留官方出处链接。
+- **运行时中立**:仅 `name`+`description` 的极简 frontmatter 不绑定任何单一宿主;Moss 的 `mergeSkillFrontmatterDefaults`
+  会按需补齐其运行时字段。
+- **渐进披露**:`SKILL.md` 正文保持精简(操作要点 + 导航),详细查表、长章节、代码放 `references/`,加载更轻。
+- **主题导向划分**:skill 按"用户任务/能力"切分,而非按数据类型;划分沿用原 `rdk-endorsed-skills` 规划的主题。
+
+## 目录布局
 
 ```text
-trusted knowledge package
-├── package manifest
-├── validated knowledge modules
-│   ├── KnowledgeRecord metadata
-│   └── host-specific chunks/views
-├── provenance and source references
-└── bundled or remotely published artifact
+skills/<name>/
+├── SKILL.md          # frontmatter(name + description) + 正文指令
+└── references/*.md    # 详细内容:硬件章节、命令表、故障速查、设备规格、官方资料
 ```
 
-The current implementation already provides the top-level module contract in
-`@device-knowledge/core`, the official RDK dataset plus starter Jetson/Raspberry
-Pi datasets in `@device-knowledge/*-knowledge`, and a D-Moss bridge in
-`@device-knowledge/dmoss-adapter`. Typed record-level provenance,
-source-backed workflow guide records, record id uniqueness validation, stable
-URL-hashed RDK doc ids, authoring lint, multi-module artifact checksum
-production, and host-side checksum validation are implemented. Remote hosting,
-release manifest discovery, Rockchip/RK source data, and cryptographic
-signature verification are release/host roadmap items.
+## Skill 划分与 references 分层
 
-## Repository Layers
+11 个 skill 覆盖 RDK 核心(7)+ 设备族 starter(3)+ 桌面端开发(1):
 
-1. `@device-knowledge/core` owns serializable schema types, validation,
-   priority ranges, conflict resolution, and regex helpers.
-2. `@device-knowledge/rdk-knowledge` owns official RDK knowledge data and
-   exports `rdkKnowledgeModuleData`, `RDK_ECOSYSTEM_TEXT`, and research seed
-   helpers.
-3. `@device-knowledge/jetson-knowledge`, `@device-knowledge/rpi-knowledge`,
-   and `@device-knowledge/rk-knowledge`
-   own starter Jetson and Raspberry Pi knowledge data migrated out of RDK
-   Studio local source modules.
-4. `@device-knowledge/dmoss-adapter` maps validated module data into Moss
-   `KnowledgeModule` objects for RDK Studio and Moss consumers.
-5. `packages/mcp-server` is reserved for read-only MCP access. Its server
-   behavior is still roadmap.
-6. `scripts/build-rdk-artifact.mjs` packages the built official device modules
-   into `dist/artifacts/rdk-device-knowledge.artifact.json` for bundled or
-   remote delivery. The script name remains RDK-compatible for existing Studio
-   release automation.
+- **RDK 核心**:`rdk-ecosystem` / `rdk-hardware` / `rdk-board-knowledge` / `rdk-device` / `rdk-ros`
+  / `rdk-peripheral-cookbook` / `rdk-board-delegate`。
+- **设备族**:`jetson-knowledge` / `rpi-knowledge` / `rk-knowledge`。
+- **桌面端**:`host-software-dev`(RDK Studio 客户端本体工程)。
 
-## Trusted Knowledge Package
+`references/` 按内容类型集中,作为单一事实源,供多个 skill 引用:
 
-A Trusted Knowledge Package is the release unit that hosts consume. It should
-be safe to load because it is data-only, versioned, validated, traceable to
-sources, and compatible with a known host range.
+| reference | 内容 | 所在 skill |
+| --- | --- | --- |
+| `hardware-notes.md` | RDK 硬件/系统详细章节(按该 skill 归属) | 各 RDK skill |
+| `failure-hints.md` | 55 条"现象→建议→文档"故障速查 | `rdk-board-knowledge` |
+| `diagnostic-commands.md` | 诊断/系统/工具链命令表 | `rdk-board-knowledge` |
+| `ros-commands.md` / `camera-commands.md` / `gpio-commands.md` | 分类命令表 | `rdk-ros` / `rdk-device` / `rdk-peripheral-cookbook` |
+| `board-specs.md` | 5 款 RDK 板型规格对照(含探测标识) | `rdk-hardware` |
+| `official-docs.md` | 官方资料导航(按主题分组) | `rdk-ecosystem` |
 
-Current artifact shape:
+## 与 Moss / RDK Studio 的关系
 
-```json
-{
-  "schema": "rdk-device-knowledge.artifact.v1",
-  "version": "2026.05.25.1",
-  "minRdkStudio": "1.2.0",
-  "createdAt": "2026-05-25T00:00:00.000Z",
-  "modules": [
-    { "manifest": { "id": "rdk" } },
-    { "manifest": { "id": "jetson-sbc" } },
-    { "manifest": { "id": "raspberry-pi-sbc" } },
-    { "manifest": { "id": "rockchip-sbc" } }
-  ]
-}
-```
+宿主从 `<workspace>/skills/**` 扫描;skill 目录名即 id,与 frontmatter `name` 一致(小写比较)。
+RDK Studio 与 Moss 都以 skill 形式内置消费;Moss 侧若需要 `risk`/`requires_board`/`approval_level` 等运行时字段,
+由其 `mergeSkillFrontmatterDefaults` 在写入本机 workspace 时补齐,无需本仓库改动。
 
-The artifact is produced by:
+设备规格(原 device-profile 的 GPIO 路数、TOPS、探测标识等)以 markdown 规格表(`board-specs.md`)形式保留,
+供选型、命令适配与设备识别参考;不再以可被代码按字段查表的 TS 数据形式存在。
 
-```bash
-npm run build:rdk-artifact -- --version 2026.05.25.1 --min-rdk-studio 1.2.0
-```
+## 内容来源与维护
 
-Current trust checks include TypeScript compilation, package tests,
-`validateDeviceKnowledgeModule`, typed record provenance validation, record id
-uniqueness, safe manifest/record ids, priority rules, docs lint, authoring
-knowledge lint, artifact checksum generation, and RDK Studio checksum-aware
-remote artifact smoke tests. Roadmap trust checks include cryptographic
-signature verification, remote release manifests, staged rollout metadata, and
-richer provenance reports.
+- 内容转换自原 `@device-knowledge/*-knowledge` 的知识数据(prompt fragments、workflow guides、command patterns、
+  failure hints、doc index、device profiles、ecosystem text、硬件 markdown),逐条保留出处。
+- 优先官方 D-Robotics 文档、工具链、Model Zoo / NodeHub;社区/经验性内容如实标注。
+- 校验:`node scripts/validate-skills.mjs` 检查 frontmatter 合规、name 与目录一致、references 链接存在。
 
-## KnowledgeRecord And Chunk Model
+## 不属于本仓库
 
-The target record model is a common `KnowledgeRecord` base used by every
-knowledge surface:
-
-- `DocIndexEntry`
-- `PromptFragment`
-- `CommandPattern`
-- `FailureHint`
-- `EndorsedSkillRef`
-- `WorkflowGuide`
-
-`DeviceKnowledgeModuleData` accepts these surfaces as typed arrays and validates
-their required per-record shape in `@device-knowledge/core`. Every record
-carries an `id`, `source`,
-compatibility `scope`, tags, language, status, confidence, priority, review
-dates, validity range, supersession metadata, and citation labels. This will
-make records traceable before they are adapted into Moss or exposed through
-future MCP resources.
-
-Chunks are represented today by host-facing views plus document `chunkPolicy`
-hints rather than a separate `KnowledgeChunk` type. A future `KnowledgeChunk`
-object should preserve the parent record id, source span, stable chunk id,
-embedding metadata, prompt metadata, and citation label.
-
-## Source And Provenance
-
-Each trusted record should point back to its source. The target
-`KnowledgeSourceRef` shape should include:
-
-- `type`: `official-doc`, `github`, `forum`, `community`, `local`, or
-  `generated`
-- `url` or `repo`
-- `commit`
-- `documentVersion`
-- `retrievedAt`
-
-For RDK official knowledge, prefer official D-Robotics documentation, GitHub
-repositories, release notes, and maintained local markdown assets. Generated or
-community records must be marked with lower confidence unless reviewed and
-promoted.
-
-Roadmap: add repository-level provenance reports that list record counts by
-source, missing source metadata, stale review dates, and changed upstream URLs.
-
-## Workflow Guides
-
-Workflow guides are source-backed task recipes for agent-facing knowledge
-quality. A guide records user trigger phrases, prerequisites, ordered steps,
-verification checks, safety notes, related sources, and the expected outcome.
-This keeps operational guidance structured and testable instead of hiding it
-inside long prompt fragments.
-
-The runtime-agnostic `buildAgentKnowledgeContext` helper exposes workflow
-guides and renders them into compact Markdown for CLIs, MCP servers, eval
-harnesses, and agents. The D-Moss adapter intentionally leaves workflow guides
-out of the Moss `KnowledgeModule` output until Moss has a concrete reader for
-that surface.
-
-## Bundled And Remote Update Flow
-
-RDK Studio should be able to consume knowledge in two modes:
-
-- **Bundled baseline:** ship a known-good artifact inside a desktop release.
-  This is the fallback that works offline.
-- **Remote update:** fetch a newer published artifact when its schema and
-  compatibility metadata match the running Studio version.
-
-The current repo can build the artifact for both modes. RDK Studio implements
-the host-side bundled/active/previous/staging selection, checksum-aware remote
-artifact validation, and failed-update fallback. Remote hosting, rollout
-metadata, and cryptographic signature verification remain outside
-`packages/core`.
-
-## RDK Studio And Moss Consumption
-
-RDK Studio and Moss should consume Device Knowledge through stable boundaries:
-
-1. Load a bundled or remote artifact.
-2. Validate each module with `@device-knowledge/core`.
-3. Resolve priority and compatibility conflicts deterministically.
-4. Convert accepted modules with `@device-knowledge/dmoss-adapter`.
-5. Register the resulting Moss `KnowledgeModule` without exposing whether the
-   source was bundled or remote.
-
-RDK Studio owns user experience, update policy, cache placement, network
-policy, telemetry, and failure messaging. Moss owns the runtime
-`KnowledgeModule` contract. Device Knowledge owns the trusted data and pure
-helpers.
-
-## Compatibility And Conflict Rules
-
-The active module schema is `device-knowledge.module.v2`. A manifest contains
-`id`, `name`, `version`, `origin`, optional `family`, `priority`, and
-compatibility metadata including `dmossKnowledgeModule` and optional
-`minRdkStudio`. Hosts may still accept `device-knowledge.module.v1` packages
-through a legacy migration path, but v2 is the producer format for new
-artifacts.
-
-Priority ranges are enforced by origin:
-
-| Origin | Priority range |
-| --- | --- |
-| `official` | `0` to `99` |
-| `community` | `100` to `499` |
-| `user` | `500` to `999` |
-
-Lower priority wins after specificity and explicit override handling. Platform
-specific knowledge wins over family-level defaults. A non-official candidate
-must declare `override=true` before it can override official knowledge.
-
-## Current Limits
-
-- `packages/mcp-server` is still a placeholder.
-- Rockchip/RK does not yet have a source package because RDK Studio did not
-  contain a dedicated local RK module to migrate.
-- Remote publishing is documented as an operating model, not an implemented
-  upload command.
-- Artifact checksums are produced by this repository and validated by the RDK
-  Studio update path; cryptographic signature verification and staged rollout
-  are roadmap. Hosts should reject signature fields until verification keys and
-  payload rules are configured.
-- The current validation checks top-level module shape, manifest compatibility,
-  typed record shape, source/provenance presence, serialized regex fields,
-  workflow guide structure, and document chunk policy hints.
+- 设备变更、SSH 执行、刷机、凭据处理。
+- 模型密钥、设备密码、账户信息。
+- RDK Studio `server/**` 内部、原生壳代码、产品 UI 状态。
+- agent 执行循环——本仓库只提供知识。
