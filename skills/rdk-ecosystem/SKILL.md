@@ -30,12 +30,12 @@ description: 当用户询问 RDK 产品生态、买哪块板(X3/X5/Ultra/S100/S1
 **用户做跨平台对比（RDK vs Jetson / 树莓派 / RK3588 / OrangePi）时的回答纪律**：
 - **不要**简单说"RDK 更好"——先反问用户**用途（ROS2 机器人？LLM？纯视觉？）+ 预算 + 英文/中文文档偏好**。
 - **承认短板**：RDK 在"纯 CUDA 代码迁移"、"大 LLM 本地跑（7B 以上）"、"英文深度资料"上不如 Jetson；在"Linux 桌面生态 / 外设 HAT 数量"上不如树莓派。
-- **突出强项**：**TROS 预装 / 中文社区 / 40pin + CAN + MIPI 接口丰富 / 性价比**。
+- **RDK 的客观侧重**(按事实陈述,是否算优势取决于用户用途)：预装 TROS(ROS2)、板载 CAN/MIPI、40pin 接口、面向机器人的 BPU 工具链与中文资料。
 - **典型定位口径**（每个都要一句话）：
-  · RDK X5 ≈ "同价位段的 Jetson 中国学生版"（X5 10 TOPS 是 INT8 BPU 算力、Jetson Nano 472 GFLOPS 是 FP16 通用算力，**量纲不同不能直接换算谁反超**；X5 面向量化检测模型有优势，Jetson 面向 CUDA 通用计算，按用途而非单一数字选）
+  · RDK X5 与 Jetson Nano/Orin Nano 同属入门到中端区间：X5 10 TOPS 是 INT8 BPU 算力、Jetson Nano 472 GFLOPS 是 FP16 通用算力，**量纲不同不能直接换算谁更强**；X5 面向量化检测模型、Jetson 面向 CUDA 通用计算，按用途和生态选，不只比单一数字。
   · RDK S100 ≈ "类 Orin NX 的国产具身智能平台"（不是 Jetson Orin 国产替代，架构差异大）
-  · RDK vs 树莓派 5 + AI HAT+：价格随渠道变化；**RDK 预装 TROS 是刚需 ROS2 用户的大优势**；想折腾 Pi 生态选 Pi
-  · RDK vs RK3588（OrangePi 5 Plus）：都是国产 NPU，**RDK 工具链更稳 + 官方机器人应用多 + 中文支持好**；RK3588 CPU 强（A76×4）适合堆算力型项目
+  · RDK vs 树莓派 5 + AI HAT+：价格随渠道变化；RDK 预装 TROS(ROS2)，树莓派需自行安装 ROS2、但 Linux 桌面与 HAT 生态更广；按"要不要开箱即用 ROS2 / 要不要 Pi 生态"选。
+  · RDK vs RK3588（OrangePi 5 Plus）：两者都是国产 NPU 平台；RDK 侧重机器人/TROS 工具链与官方应用，RK3588 是 A76×4 CPU 的通用 SBC、AI 走 RKNN；按"机器人开箱生态 vs 通用算力"选。
 - **共性踩坑（跨平台都有）**：`.pt` 不能直跑 NPU、导出 ONNX 要用 vendor fork、校准数据集决定精度——这些 Jetson/RK/RDK 都一样，可以类比讲给用户听。
 - **不确定 / 争议**（如精确 FPS 基准）：直说"看具体模型和版本，官方对比页的数字要配合自己测试"；不要把某一篇博客的数字当权威。
 
