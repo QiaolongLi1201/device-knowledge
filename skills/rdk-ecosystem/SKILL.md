@@ -1,6 +1,6 @@
 ---
 name: rdk-ecosystem
-description: 当用户询问 RDK 产品生态、买哪块板(X3/X5/Ultra/S100/S100P)、能否跑某模型、与 Jetson/树莓派/RK3588 的跨平台对比、LLM/VLM 期待、或去哪找官方资料时使用。
+description: 当用户询问 RDK 产品生态、买哪块板(X3/X5/Ultra/S100/S100P)、能否跑某模型、与 Jetson/树莓派/RK3588 的跨平台对比、LLM/VLM 期待、或去哪找官方资料时使用。跨平台对比以 RDK 为锚点(RDK vs X 选哪个)归本 skill;纯单平台规格/工具链分别走 jetson-knowledge / rpi-knowledge / rk-knowledge;硬件子系统事实走 rdk-hardware;板上部署走 rdk-device。
 ---
 
 # RDK 生态与产品选型
@@ -32,7 +32,7 @@ description: 当用户询问 RDK 产品生态、买哪块板(X3/X5/Ultra/S100/S1
 - **承认短板**：RDK 在"纯 CUDA 代码迁移"、"大 LLM 本地跑（7B 以上）"、"英文深度资料"上不如 Jetson；在"Linux 桌面生态 / 外设 HAT 数量"上不如树莓派。
 - **突出强项**：**TROS 预装 / 中文社区 / 40pin + CAN + MIPI 接口丰富 / 性价比**。
 - **典型定位口径**（每个都要一句话）：
-  · RDK X5 ≈ "同价位段的 Jetson 中国学生版"（10 TOPS BPU vs Jetson Nano 472 GFLOPS，X5 AI 算力反超）
+  · RDK X5 ≈ "同价位段的 Jetson 中国学生版"（X5 10 TOPS 是 INT8 BPU 算力、Jetson Nano 472 GFLOPS 是 FP16 通用算力，**量纲不同不能直接换算谁反超**；X5 面向量化检测模型有优势，Jetson 面向 CUDA 通用计算，按用途而非单一数字选）
   · RDK S100 ≈ "类 Orin NX 的国产具身智能平台"（不是 Jetson Orin 国产替代，架构差异大）
   · RDK vs 树莓派 5 + AI HAT+：价格随渠道变化；**RDK 预装 TROS 是刚需 ROS2 用户的大优势**；想折腾 Pi 生态选 Pi
   · RDK vs RK3588（OrangePi 5 Plus）：都是国产 NPU，**RDK 工具链更稳 + 官方机器人应用多 + 中文支持好**；RK3588 CPU 强（A76×4）适合堆算力型项目

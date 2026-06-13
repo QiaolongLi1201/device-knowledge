@@ -1,34 +1,36 @@
 ---
 name: rk-knowledge
-description: 当用户询问 Rockchip RK3588 平台(Rock 5B/5 ITX、OrangePi 5 Plus、Firefly)的 NPU、RKNN 工具链部署,或与 RDK 跨平台对比时使用。
+description: 当用户询问 Rockchip RK3588 平台(Rock 5B/5 ITX、OrangePi 5 Plus、Firefly)的 NPU、RKNN 工具链部署时使用;本 skill 只讲 RK3588 平台本身,涉及与 RDK 的选型对比参见 rdk-ecosystem。
 ---
 
 # Rockchip RK3588 知识
 
-> 来源:整理自 D-Robotics RDK 官方文档、工具链与社区实践,逐条保留出处链接;由 device-knowledge 知识库忠实转换而来,未改写技术事实。
+> 来源:整理自 Rockchip / Radxa 官方文档与社区实践,逐条保留出处链接;具体规格与版本以官方为准。
 
-RK3588/RKNN 起步知识:RKNN 工具链与 RDK BPU 工作流差异较大,单独成篇。
+RK3588/RKNN 起步知识:RKNN 工具链、NPU 与板端推理要点。
 
-## Rockchip RK 生态（提要）
-- 常见开发板包括 Radxa ROCK 5 系列、Orange Pi 5 系列、Firefly ROC-RK3588S-PC 等。
-- RK3588/RK3588S NPU 标称 6 TOPS；模型部署通常使用 RKNN Toolkit 2 转换为 `.rknn`，板端使用 `librknnrt` / `rknn_toolkit_lite2` 推理。
-- 不要套用 RDK BPU/TROS、Jetson CUDA/TensorRT 或 Raspberry Pi HAT 的路径；先确认系统镜像、内核、NPU runtime 和 rknn-toolkit2 版本是否匹配。
+## RK3588 要点
 
-## Rockchip RK 设备上下文（知识模块）
-- 典型 RK3588/RK3588S 板卡是通用 Linux SBC；AI 推理优先走 RKNN `.rknn`，不是 RDK `.bin`、Jetson TensorRT engine 或 Raspberry Pi Hailo HEF。
-- 诊断先用通用只读命令：`uname -a`、`cat /etc/os-release`、`cat /proc/device-tree/model`、`lscpu`、`lsusb`、`dmesg | grep -i rknpu`。
-- NPU 可用性取决于镜像内核驱动、`librknnrt` 与模型转换工具版本；遇到 RKNN 报错先核对 runtime/toolkit 版本，不要默认是模型本身错误。
+- 模型用 **RKNN Toolkit 2** 转为 `.rknn`,板端用 `librknnrt` / `rknn_toolkit_lite2` 推理。
+- NPU 标称 6 TOPS = **三核合计(单核约 2 TOPS)**;多核分配靠 RKNN 的 `core_mask`,是部署时的实际决策点。
+- RKNN 报错先核对系统镜像、内核、NPU runtime(`librknnrt`)与 rknn-toolkit2 版本是否匹配,而非默认模型本身错误。
+
+## 设备与诊断
+
+- 常见开发板:Radxa ROCK 5 系列、Orange Pi 5 系列、Firefly ROC-RK3588S-PC 等;典型 RK3588/RK3588S 板卡是通用 Linux SBC。
+- 诊断先用通用只读命令:`uname -a`、`cat /etc/os-release`、`cat /proc/device-tree/model`、`lscpu`、`lsusb`、`dmesg | grep -i rknpu`。
+- NPU 可用性取决于镜像内核驱动、`librknnrt` 与模型转换工具版本。
 
 ## 常用命令
 
 | 命令模式 | 说明 | 风险 | 适用板型 |
 | --- | --- | --- | --- |
-| `dmesg\s*\\|\s*grep\s+(-i\s+)?rknpu` | Inspect Rockchip NPU driver/runtime messages | safe | radxa-rock-5b/radxa-rock-5-itx/orange-pi-5-plus/firefly-roc-rk3588s-pc |
-| `pip\s+install\s+.*rknn\|rknn[-_]toolkit` | RKNN Toolkit installation or runtime package setup | moderate | radxa-rock-5b/radxa-rock-5-itx/orange-pi-5-plus/firefly-roc-rk3588s-pc |
+| `dmesg\s*\\|\s*grep\s+(-i\s+)?rknpu` | 查看 Rockchip NPU 驱动/运行时内核日志 | safe | radxa-rock-5b/radxa-rock-5-itx/orange-pi-5-plus/firefly-roc-rk3588s-pc |
+| `pip\s+install\s+.*rknn\|rknn[-_]toolkit` | 安装 RKNN Toolkit / 运行时包 | moderate | radxa-rock-5b/radxa-rock-5-itx/orange-pi-5-plus/firefly-roc-rk3588s-pc |
 
 ## 常见故障
 
-- 匹配 `RKNN.*(version|mismatch|init runtime|load model|invalid model)|librknnrt` → RKNN runtime/toolkit mismatch is common. Check board-side `librknnrt` / `rknn_toolkit_lite2` version, then rebuild the `.rknn` model with the matching RKNN Toolkit 2 release. (<https://github.com/airockchip/rknn-toolkit2>)
+- 匹配 `RKNN.*(version|mismatch|init runtime|load model|invalid model)|librknnrt` → RKNN runtime/toolkit 版本不匹配很常见。先核对板端 `librknnrt` / `rknn_toolkit_lite2` 版本,再用匹配的 RKNN Toolkit 2 重新生成 `.rknn` 模型。 (<https://github.com/airockchip/rknn-toolkit2>)
 
 ## 设备规格
 

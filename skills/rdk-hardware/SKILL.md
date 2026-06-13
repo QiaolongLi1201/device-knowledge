@@ -1,6 +1,6 @@
 ---
 name: rdk-hardware
-description: 当涉及 RDK 板型感知、40PIN GPIO、摄像头系统、BPU 推理流水线、系统路径、网络、散热、BPU 架构演进、OS 版本线等硬件与系统底座知识时使用。
+description: 当用户问 RDK 板子的硬件事实——各板引脚是否相同/40PIN 怎么接、默认用户名密码、模型目录在哪、摄像头/CAN/网口等接口、各板算力内存差异、要不要散热、系统路径与 OS 版本线时使用。本 skill 给硬件子系统的事实底座:要排报错故障→rdk-board-knowledge;要动手驱动外设(点灯/转电机)→rdk-peripheral-cookbook;要端到端部署模型→rdk-device;要选型买哪块板→rdk-ecosystem。
 ---
 
 # RDK 硬件与系统基础
@@ -13,7 +13,7 @@ description: 当涉及 RDK 板型感知、40PIN GPIO、摄像头系统、BPU 推
 - 用 `cat /sys/class/socinfo/board_id` 或 `cat /etc/version` 确认板型（**通用，所有板型都装**），不要假设
 - BPU 监控请按板型选命令：X5 用 `hrut_bpuprofile -b 0`；X3 才有 `hrut_smi`/`bputop`；最稳的兜底是 `cat /sys/devices/system/bpu/bpu0/ratio`（所有板型都通用）
 - 模型格式**不通用**：X3=Bernoulli2(.bin), X5/Ultra=Bayes(.bin), S100=Nash(.bin)，跨板型必须重新编译
-- 算力差异巨大：X3(5T/2G) → X5(10T/4G) → Ultra(96T/8G) → S100(80T/12G) → S100P(128T/24G)，方案选择须匹配硬件能力
+- 算力(INT8 TOPS)/内存(GB)对照：X3(5/2) → X5(10/4 或 8，两个 SKU) → Ultra(96/8) → S100(80/12) → S100P(128/24)；方案选择须匹配硬件能力，规格以 [board-specs](references/board-specs.md) 为单一事实源
 - S100 特有：MCU(R52+)实时控制、GMSL相机、Nash架构支持 Transformer 算子；X3 仅适合轻量模型和教学
 - 默认用户：**X3 = sunrise/sunrise**；**X5 / Ultra = root/root**；**S100 视镜像，root 为主，少数镜像仅 sunrise 配了 TROS**
 - 模型目录：**X5 在 `/opt/hobot/model/x5/`（无 rdk 前缀）**；X3 在 `/opt/hobot/model/rdkx3/`（有 rdk 前缀，历史遗留）；S100 在 `/opt/hobot/model/s100/`（以实际 `ls` 为准）
@@ -49,5 +49,5 @@ description: 当涉及 RDK 板型感知、40PIN GPIO、摄像头系统、BPU 推
 
 ## 参考资料
 
-- [RDK 板型规格对照](references/board-specs.md)
-- [硬件与系统参考(详细章节)](references/hardware-notes.md)
+- [RDK 板型规格对照](references/board-specs.md)（查阅时机:需核对某块板的 RAM/算力/接口数量/探测标识时）
+- [硬件与系统参考(详细章节)](references/hardware-notes.md)（查阅时机:确认板型后,需要某子系统的展开细节时）

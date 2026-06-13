@@ -1,6 +1,6 @@
 ---
 name: rdk-peripheral-cookbook
-description: 当用户要在 RDK 上驱动 GPIO/I2C/SPI/UART、PWM 舵机、直流/步进/无刷电机、LED/WS2812、音频(ALSA),或做跨平台引脚对照、libgpiod、零驱动诊断时使用。
+description: 当用户要在 RDK 上驱动 GPIO/I2C/SPI/UART、PWM 舵机、直流/步进/无刷电机、LED/WS2812、音频(ALSA),或做跨平台引脚对照、libgpiod、零驱动诊断时使用。本 skill 给外设实操驱动;GPIO 引脚事实/编号差异走 rdk-hardware,设备报错排查走 rdk-board-knowledge。
 ---
 
 # RDK 外设驱动食谱

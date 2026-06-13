@@ -1,6 +1,6 @@
 ---
 name: rdk-ros
-description: 当涉及 RDK 上的 TROS/ROS2 环境初始化、ros2 命令、节点排障、包定位、或双目深度(hobot_stereonet)/Livox 激光雷达等感知节点时使用。
+description: 当涉及 RDK 上的 TROS/ROS2 环境初始化、ros2 命令、节点排障、包定位、或双目深度(hobot_stereonet)/Livox 激光雷达/点云/SLAM 建图等感知节点时使用。摄像头格式/驱动排障走 rdk-device,GPIO/外设驱动走 rdk-peripheral-cookbook。
 ---
 
 # RDK TROS/ROS2 开发
