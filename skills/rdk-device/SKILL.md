@@ -1,6 +1,6 @@
 ---
 name: rdk-device
-description: 当用户要在 RDK 板上部署模型(.pt/.onnx→.bin BPU 工具链)、首次开箱联网、跑摄像头/视觉推理、或从 0 到 1 上手时使用;含端到端工作流。
+description: 当用户要在 RDK 板上部署模型(.pt/.onnx→.bin BPU 工具链)、首次开箱联网、跑摄像头/视觉推理(完整排障+推理闭环;只查报错对照走 rdk-board-knowledge)、或从 0 到 1 上手时使用;含端到端工作流。
 ---
 
 # RDK 设备控制与模型部署

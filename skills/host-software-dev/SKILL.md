@@ -40,7 +40,7 @@ description: 当开发 RDK Studio 桌面客户端本体(Electron/React/Vite/Node
 
 ## 常用命令
 
-| 命令模式 | 说明 | 风险 | 适用板型 |
+| 命令模式 | 说明 | 风险 | 适用范围 |
 | --- | --- | --- | --- |
 | `(npm\|pnpm\|yarn)\s+run\s+dev\|\bvite\b` | Run or inspect a Vite development server | safe | 通用 |
 | `\btsc\b.*(--noEmit\|-p\s+[^\s]+)\|run\s+typecheck` | Run TypeScript compiler diagnostics | safe | 通用 |
